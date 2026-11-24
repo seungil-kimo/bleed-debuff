@@ -6,10 +6,10 @@ export const diff = (a, b) => Math.round((pd(b) - pd(a)) / 864e5);
 export const isDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 export const clampN = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) && v >= lo && v <= hi ? Math.round(v) : d; };
 // ── 배란·가임기 설정 (다음 생리 예정일 기준으로 며칠 전인지) ──
-export const OV_FIRST = 15;   // 배란 예정일 첫날 = 예정일 15일 전
-export const OV_LAST = 14;    // 배란 예정일 둘째 날 = 예정일 14일 전
-export const FERT_BEFORE = 5; // 가임기 시작 = 배란 예정일 첫날 5일 전
-export const FERT_AFTER = 3;  // 가임기 끝 = 배란 예정일 둘째 날 3일 후
+export const OV_FIRST = 14;   // 배란 예정일 첫날 = 예정일 14일 전 (해피문데이 배란일과 같음)
+export const OV_LAST = 13;    // 배란 예정일 둘째 날 = 예정일 13일 전
+export const FERT_BEFORE = 4; // 가임기 시작 = 배란 예정일 첫날 4일 전 (해피문데이와 같음)
+export const FERT_AFTER = 4;  // 가임기 끝 = 배란 예정일 둘째 날 4일 후 → 가임기 총 10일
 
 const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
 
