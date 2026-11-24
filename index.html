@@ -147,17 +147,23 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .cbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--lil);border-radius:20px;padding:8px 8px 8px 14px;box-shadow:0 6px 24px rgba(0,0,0,.15);width:max-content;max-width:94vw;font-size:14px}
 .cbar[hidden]{display:none}
 .cat .sp{display:none}
-.cat.has-sp{width:136px;height:62px}
+.cat.has-sp{width:68px;height:32px}
 .cat.has-sp>svg,.cat.has-sp .masc{display:none!important}
 .cat.has-sp .sp{display:flex;align-items:center;height:100%}
 .cat.has-sp.left .sp{flex-direction:row-reverse}
-.cat .sptail{width:84px;height:40px;margin-right:-10px;flex:none;overflow:visible}
-.cat.has-sp.left .sptail{margin-right:0;margin-left:-10px}
-.cat .sphead{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.18);flex:none;position:relative;z-index:1;background:#fff}
+.cat .sptail{transition:none!important;width:42px;height:20px;margin-right:-5px;flex:none;overflow:visible}
+.cat.has-sp.left .sptail{margin-right:0;margin-left:-5px}
+.cat .sphead{width:29px;height:29px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);flex:none;position:relative;z-index:1;background:#fff}
 .cat.has-sp{pointer-events:auto}
 .cat.has-sp .sp{transform-origin:50% 50%;transition:transform .25s linear}
 .cat.has-sp.love .sphead{animation:mlove .3s ease-in-out infinite alternate}
-.cat.has-sp .bub{top:-24px}
+.cat.has-sp .bub{top:-24px;font-size:12px}
+.cat.has-sp .heart{font-size:12px;left:80%;top:0}
+.egg{position:absolute;width:104px;height:104px;border-radius:50%;pointer-events:none;z-index:0}
+.egg::before{content:"";position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,226,.0) 52%,rgba(255,196,214,.55) 62%,rgba(255,226,235,.35) 78%,rgba(255,240,245,0) 100%)}
+.egg::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:3px dotted rgba(255,160,190,.9)}
+.egg img{position:relative;width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,170,195,.9),0 4px 14px rgba(223,65,105,.25)}
+.ddline{font-family:"Gowun Dodum",sans-serif;font-size:30px;line-height:1.1;margin-top:6px}.ddline small{display:block;font-family:"Noto Sans KR",sans-serif;font-size:13px;color:var(--mute)}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -226,7 +232,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
 <div id="cat" class="cat walk" hidden aria-label="고양이" role="img">
   <span class="bub" id="catbub">히익!</span>
   <img class="masc" id="masc" alt="">
-  <div class="sp"><svg class="sptail" viewBox="0 0 84 40" aria-hidden="true"><path class="spt0" fill="none" stroke="rgba(60,40,70,.45)" stroke-width="7.5" stroke-linecap="round"/><path class="spt1" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/></svg><img class="sphead" alt=""></div>
+  <div class="sp"><svg class="sptail" viewBox="0 0 84 40" aria-hidden="true"><path class="spt1" fill="#fff" stroke="rgba(70,45,80,.75)" stroke-width="2" stroke-linejoin="round"/></svg><img class="sphead" alt=""></div>
   <svg viewBox="0 0 68 52" aria-hidden="true">
     <ellipse cx="34" cy="49" rx="20" ry="2.5" fill="#000" opacity=".12"/>
     <g class="bod">
@@ -292,6 +298,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.22', d: '11/24', items: ['꼬리 캐릭터 크기를 절반으로 줄이고, 꼬리가 끝으로 갈수록 뾰족해져요', '"다음 생리까지" 원 가운데에 여자친구 사진을 난자처럼 넣을 수 있어요 (움직이지 않음)', '난자 사진을 넣으면 D-day 글씨는 원 아래로 옮겨져요'] },
  { v: '1.21', d: '11/24', items: ['꼬리 캐릭터가 "다음 생리까지" 카드 안에서 불규칙하게 헤엄쳐요', '카드 밖으로는 나가지 않고 벽에 닿으면 튕겨 나와요', '여러 마리 넣으면 각자 다르게 헤엄쳐요'] },
  { v: '1.20', d: '11/24', items: ['얼굴 사진으로 꼬리 캐릭터를 만들 수 있어요: 얼굴이 머리가 되고 꼬리를 살랑거리며 헤엄쳐 다녀요', '꼬리 캐릭터도 멈추기·위치 옮기기·터치하면 애교 다 돼요'] },
  { v: '1.19', d: '11/24', items: ['맨 위 두 사람 사진이 같은 크기로 고정돼요 (기울어짐·흔들림 없음)', '사진이 5초마다 자동으로 바뀌고, 누르면 바로 바뀌어요'] },
@@ -319,7 +326,7 @@ const NOTES = [
 const APP_VER = NOTES[0].v;
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
-const S = { mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const S = { egg: '', mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
@@ -341,6 +348,7 @@ function ringSVG(M) {
  if (M.phase === 'period') { big = M.dayN + '일째'; lab = '생리 중'; }
  else if (M.phase === 'late') { big = '+' + M.late + '일'; lab = '예정일이 지났어요'; }
  else if (M.last) { big = M.dNext === 0 ? '오늘' : 'D-' + M.dNext; lab = M.dNext === 0 ? '생리 예정일' : '다음 생리까지'; }
+ if (S.egg) return s + `</svg><div class="ddline">${esc(big)}<small>${esc(lab)}</small></div>`;
  return s + `<text x="120" y="122" text-anchor="middle" font-family="Gowun Dodum, sans-serif" font-size="40" fill="var(--ink)">${esc(big)}</text><text x="120" y="152" text-anchor="middle" font-size="14" fill="var(--mute)">${esc(lab)}</text></svg>`;
 }
 
@@ -477,7 +485,7 @@ function renderSet(M) {
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
- h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기<input type="file" accept="image/*" data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
+ h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기<input type="file" accept="image/*" data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">${S.egg ? `<img src="${esc(S.egg)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #ffc3d1">` : '<span style="font-size:28px;width:44px;text-align:center">🥚</span>'}<span style="flex:1">가운데 난자 사진<br><span class="small">"다음 생리까지" 원 가운데에 고정돼요</span></span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${S.egg ? '바꾸기' : '사진 선택'}<input type="file" accept="image/*" data-egg="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${S.egg ? '<button class="btn ghost" data-act="delegg" style="flex:none;min-height:40px;font-size:14px">빼기</button>' : ''}</div><p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
  h += `<label class="row" style="margin-top:10px">🐈 캐릭터 보이기<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
@@ -551,7 +559,7 @@ function subscribe() {
  S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); window.charSync && window.charSync(); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
- S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; S.mascots = {}; sn.docs.forEach(d => { const x = d.data(); if (d.id === 'mascot' || d.id === 'mascot2') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.mascots[d.id] = x.data; return; } const pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && (x.data.startsWith('data:image/') || x.data.startsWith('data:video/'))) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; S.mascots = {}; S.egg = ''; sn.docs.forEach(d => { const x = d.data(); if (d.id === 'mascot' || d.id === 'mascot2') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.mascots[d.id] = x.data; return; } if (d.id === 'egg') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.egg = x.data; return; } const pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && (x.data.startsWith('data:image/') || x.data.startsWith('data:video/'))) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; window.eggSync && window.eggSync(); tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.chars = sn.docs.map(d => { const x = d.data(); return { id: d.id, data: typeof x.data === 'string' && x.data.startsWith('data:image/') ? x.data : '', x: Number.isFinite(x.x) ? x.x : 0.5, y: Number.isFinite(x.y) ? x.y : 300, mode: x.mode === 'still' ? 'still' : 'walk', tail: !!x.tail, at: x.createdAt || 0 }; }).filter(c => c.data).sort((a, b) => a.at - b.at); S.charsLoaded = true; window.charSync && window.charSync(); tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
@@ -600,6 +608,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
+ if (a === 'delegg') { await w(() => deleteDoc(sub('photos', 'egg')), '난자 사진을 뺐어요'); return; }
  if (a === 'charedit') { window.charEdit && window.charEdit(true); return; }
  if (a === 'charmode') { await window.charMode(b.dataset.id, b.dataset.m); return; }
  if (a === 'charall') { const ids = S.chars.length ? S.chars.map(c => c.id) : ['_cat']; for (const id of ids) await window.charMode(id, b.dataset.m); toast(b.dataset.m === 'still' ? '모두 멈췄어요' : '모두 걸어다녀요'); return; }
@@ -725,6 +734,11 @@ async function tryMigrate() {
  } catch (e) { console.error(e); }
 }
 document.addEventListener('change', async e => {
+ if (e.target.dataset && e.target.dataset.egg && e.target.files && e.target.files[0] && S.code) {
+  try { const r = await readFace(e.target.files[0]); await setDoc(sub('photos', 'egg'), { data: r.data, by: S.uid, updatedAt: Date.now() }); toast('난자 사진을 넣었어요'); }
+  catch (err) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '사진을 읽지 못했어요'); }
+  e.target.value = ''; return;
+ }
  if (e.target.dataset && e.target.dataset.addchar && e.target.files && e.target.files.length && S.code) {
   await addChars(Array.from(e.target.files), e.target.dataset.addchar === 'sp'); e.target.value = ''; return;
  }
@@ -781,14 +795,19 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  new ResizeObserver(syncTop).observe(app); syncTop();
  // 꼬리 캐릭터는 "다음 생리까지" 카드 안에서만 헤엄쳐요
  const pool = document.createElement('div'); pool.id = 'swimPool'; pool.style.cssText = 'position:absolute;z-index:3;pointer-events:none'; app.appendChild(pool);
- const syncPool = () => { const h = document.getElementById('hero'); if (!h) return; pool.style.left = h.offsetLeft + 'px'; pool.style.top = h.offsetTop + 'px'; pool.style.width = h.offsetWidth + 'px'; pool.style.height = h.offsetHeight + 'px'; };
+ const egg = document.createElement('div'); egg.className = 'egg'; egg.hidden = true; egg.innerHTML = '<img alt="">'; pool.appendChild(egg);
+ const syncPool = () => {
+  const h = document.getElementById('hero'); if (!h) return; pool.style.left = h.offsetLeft + 'px'; pool.style.top = h.offsetTop + 'px'; pool.style.width = h.offsetWidth + 'px'; pool.style.height = h.offsetHeight + 'px';
+  if (!egg.hidden) { const r = h.querySelector('.ring'); if (r) { const hr = h.getBoundingClientRect(), rr = r.getBoundingClientRect(); egg.style.left = (rr.left - hr.left + rr.width / 2 - 52) + 'px'; egg.style.top = (rr.top - hr.top + rr.height / 2 - 52) + 'px'; } }
+ };
+ window.eggSync = () => { const im = egg.querySelector('img'); if (S.egg) { if (im.getAttribute('src') !== S.egg) im.src = S.egg; egg.hidden = false; } else { egg.hidden = true; im.removeAttribute('src'); } syncPool(); };
  const bar = document.createElement('div'); bar.className = 'cbar'; bar.hidden = true;
  bar.innerHTML = '<span>캐릭터를 끌어서 옮기세요</span><label class="btn ghost addc" style="position:relative;flex:none;min-height:44px;display:flex;align-items:center;font-size:14px">+ 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><button class="btn" data-cact="done" style="flex:none;min-height:44px;padding:0 20px">완료</button>';
  document.body.appendChild(bar);
  const catOn = () => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } };
  const rand = (a, b) => a + Math.random() * (b - a), any = a => a[Math.floor(Math.random() * a.length)];
  const SAY_SIT = ['zZ', '…', '냐아', '꾹꾹', '♪'], SAY_LOVE = ['냥♡', '쓰다듬어 줘', '헤헤', '좋아해', '골골골…', '간식 주세요', '최고야', '😽', '안아 줘', '뿌잉'];
- const W = w => w.tail ? 136 : w.img ? 76 : 68, H = w => w.tail ? 62 : w.img ? 76 : 52;
+ const W = w => w.tail ? 68 : w.img ? 76 : 68, H = w => w.tail ? 32 : w.img ? 76 : 52;
  let editing = false, drag = null;
  const ws = new Map();
  function cls(w) { w.el.className = 'cat ' + w.anim + (w.dir < 0 ? ' left' : '') + (w.tail ? ' has-sp' : w.img ? ' has-m' : '') + (editing ? ' edit' : ''); }
@@ -799,7 +818,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   const tool = document.createElement('div'); tool.className = 'ctool';
   tool.innerHTML = '<button data-cact="mode"></button><button data-cact="del">✕</button>';
   el.appendChild(tool); layer.appendChild(el);
-  const w = { id, el, tool, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), head: el.querySelector('.sphead'), t0: el.querySelector('.spt0'), t1: el.querySelector('.spt1'), tail: false, ph: Math.random() * 6, bob: Math.random() * 6, img: '', mode: 'walk', fx: 0.5, y: 300, x: 0, dir: Math.random() < .5 ? 1 : -1, anim: 'walk', until: 0, speed: rand(32, 48), placed: false };
+  const w = { id, el, tool, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), head: el.querySelector('.sphead'), t1: el.querySelector('.spt1'), tail: false, ph: Math.random() * 6, bob: Math.random() * 6, img: '', mode: 'walk', fx: 0.5, y: 300, x: 0, dir: Math.random() < .5 ? 1 : -1, anim: 'walk', until: 0, speed: rand(32, 48), placed: false };
   el.addEventListener('pointerdown', e => {
    if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
@@ -829,9 +848,12 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  function place(w) { w.el.style.transform = `translate(${w.x.toFixed(1)}px, ${w.y.toFixed(1)}px)`; }
  // 꼬리: 머리 쪽은 거의 안 움직이고 끝으로 갈수록 크게 물결쳐요
  function drawTail(w) {
-  let d = '';
-  for (let i = 0; i <= 24; i++) { const u = i / 24, x = 84 - u * 84, a = 1.5 + 11 * u, y = 20 + a * Math.sin(u * 2.4 * Math.PI - w.ph); d += (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1); }
-  w.t0.setAttribute('d', d); w.t1.setAttribute('d', d);
+  // 꼬리 가운데 선을 따라 머리 쪽은 두껍고(반폭 5) 끝으로 갈수록 뾰족하게(0) 채워진 모양을 그려요
+  const N = 24, P = [];
+  for (let i = 0; i <= N; i++) { const u = i / N, x = 84 - u * 84, a = 1.5 + 11 * u, y = 20 + a * Math.sin(u * 2.4 * Math.PI - w.ph); P.push([x, y, 6.5 * Math.pow(1 - u, 1.2) + 0.3]); }
+  const L = [], R = [];
+  for (let i = 0; i <= N; i++) { const p = P[i], q = P[Math.min(N, i + 1)], o = P[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len; L.push((p[0] + nx * p[2]).toFixed(1) + ' ' + (p[1] + ny * p[2]).toFixed(1)); R.push((p[0] - nx * p[2]).toFixed(1) + ' ' + (p[1] - ny * p[2]).toFixed(1)); }
+  w.t1.setAttribute('d', 'M' + L.join('L') + 'L' + R.reverse().join('L') + 'Z');
  }
  function toolText(w) { const [m, d] = w.tool.children; m.textContent = w.mode === 'walk' ? '🚶 걷는 중' : '⏸ 멈춤'; d.hidden = w.id === '_cat'; }
  // 데이터 → 화면
