@@ -151,6 +151,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gsta
 import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js';
 import { model, events, add, diff, pd, fd, isDate, clampN, OV_FIRST, OV_LAST, FERT_BEFORE, FERT_AFTER } from './cycle.js';
+import { PH, pick } from './content.js';
 
 // ── Firebase 설정 ──
 const firebaseConfig = {
@@ -179,6 +180,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.5', d: '11/24', items: ['단계별 팁·선물·데이트 추천이 매일 바뀌어요 (내용 약 4배)', '함께 보는 사람에게 "오늘 보내볼 한마디" 추가', '기록하는 사람에게 "먹으면 좋은 것" 추가', '최근 6번이 아니라 전체 기록으로 예측해요'] },
  { v: '1.4', d: '11/24', items: ['안내 화면과 시작 화면이 겹쳐 보이던 문제 수정'] },
  { v: '1.3', d: '11/24', items: ['더블터치·두 손가락 확대 막기', '업데이트하면 맨 위에 제작자 노트가 떠요'] },
  { v: '1.2', d: '11/24', items: ['가임기 10일로 늘림 (시작일은 해피문데이와 같게)', '배란 예정일 2일로 표시'] },
@@ -194,17 +196,6 @@ const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
 const MOODS = ['좋음', '평온', '예민', '우울', '불안', '피곤'];
 const SYMS = ['두통', '복통', '허리 통증', '붓기', '여드름', '식욕 증가', '가슴 통증', '불면', '소화 불량'];
-
-const PH = {
- none: { n: '첫 기록 전', c: 'var(--mute)', b: '생리가 시작한 날을 한 번 기록하면 다음 예정일과 가임기를 계산해요. 기록이 쌓일수록 예측이 내 주기에 맞춰져요.', care: ['기록하는 사람이 첫 기록을 남길 때까지 기다려 주세요.'], self: ['지난 생리 시작일이 기억나면 달력에서 그 날짜를 눌러 기록해요.'], gift: [] },
- period: { n: '생리 기간', c: 'var(--rose)', b: '자궁이 수축하면서 아랫배·허리 통증, 피로, 두통이 올 수 있어요. 피가 빠져나가 쉽게 지치고 추위를 더 탈 수 있어요.', care: ['"괜찮아?" 하고 먼저 물어봐 주세요', '무리한 일정은 미루고 쉬는 데이트로', '배 따뜻하게, 찬 음식은 피하게 도와주기'], self: ['배와 허리를 따뜻하게 해요', '충분히 자고 물을 자주 마셔요', '통증이 심하면 진통제는 아프기 시작할 때 일찍 먹는 게 좋아요'], gift: ['핫팩·온열 찜질팩', '따뜻한 차 (생강차, 캐모마일)', '다크 초콜릿', '부드러운 담요나 수면 양말', '철분 많은 음식 같이 먹기 (소고기, 시금치)'] },
- follicular: { n: '생리 후 회복기', c: 'var(--ink)', b: '생리가 끝나고 에스트로겐이 늘면서 몸이 가볍고 기분도 좋아지는 경우가 많아요.', care: ['활동적인 데이트하기 좋은 때예요', '새로운 곳 가보기, 같이 운동하기'], self: ['컨디션이 좋을 때 운동이나 미뤄둔 일을 해봐요'], gift: ['새 데이트 코스', '같이 산책·자전거', '가보고 싶다던 맛집'] },
- fertile: { n: '가임기', c: 'var(--lil)', b: '배란 전후로 임신 가능성이 높은 시기예요. 컨디션이 좋은 사람도 있고, 배란통이나 분비물 변화를 느끼는 사람도 있어요.', care: ['한쪽 아랫배가 콕콕 아프다고 하면 배란통일 수 있어요', '이 앱의 날짜는 예측이라 피임 기준으로 쓰면 안 돼요'], self: ['배란통이 있으면 따뜻하게 쉬어요', '날짜는 예측이에요. 피임은 따로 꼭 챙겨요'], gift: ['좋아하는 꽃 한 송이', '함께 맛있는 저녁'] },
- ovu: { n: '배란 예정일', c: 'var(--lil)', b: '다음 생리 예정일로부터 13~14일 전, 이틀을 배란 예정일로 잡아요. 실제 배란일은 사람과 달마다 다를 수 있어요.', care: ['배란통이나 컨디션 변화를 잘 들어주세요', '날짜는 예측이라 피임 기준이 아니에요'], self: ['몸 변화가 있으면 오늘 기록에 남겨두면 좋아요'], gift: ['좋아하는 꽃 한 송이', '함께 맛있는 저녁'] },
- luteal: { n: '배란 후', c: 'var(--ink)', b: '프로게스테론이 늘면서 쉽게 피곤해지거나 식욕이 바뀔 수 있어요.', care: ['피곤하다고 하면 일정을 여유 있게', '편하게 쉴 수 있는 데이트'], self: ['잠을 충분히 자고 짠 음식은 조금 줄여봐요'], gift: ['좋아하는 간식', '같이 영화 보며 쉬기'] },
- pms: { n: '생리 전 (PMS)', c: 'var(--rose)', b: '생리 1주일 전쯤부터 붓기, 예민함, 두통, 가슴 통증, 단 음식 당김이 올 수 있어요. 정도는 사람마다 많이 달라요.', care: ['예민해 보여도 "생리 때문이지?" 대신 먼저 들어주기', '약속은 여유 있게, 갑작스러운 계획은 피하기', '생리대·진통제 미리 챙겨두기'], self: ['카페인과 짠 음식을 줄이면 붓기에 도움이 돼요', '가벼운 스트레칭과 반신욕'], gift: ['좋아하는 디저트', '입욕제·족욕', '짧은 손편지', '생리대 미리 챙겨주기'] },
- late: { n: '예정일 지남', c: 'var(--rose)', b: '스트레스, 피로, 체중 변화, 여행 같은 이유로 생리가 늦어질 수 있어요.', care: ['다그치지 말고 편하게 이야기 나누기', '일주일 넘게 늦어지면 테스트나 병원을 같이 고민해 보기'], self: ['일주일 넘게 늦어지거나 걱정되면 테스트기나 산부인과로 확인해요'], gift: ['따뜻한 차와 간식'] }
-};
 
 const M_ = () => model(S.periods, (S.couple && S.couple.settings) || {}, T());
 
@@ -253,8 +244,22 @@ function render() {
  const nf = S.device.notify || {}, ns = events(M, T(), role()).filter(e => nf[e.kind] !== false);
  $('#notes').innerHTML = ns.length ? ns.map(e => `<div class="note"><span class="dot" style="background:${e.kind === 'fertile' || e.kind === 'ovu' ? 'var(--lil)' : 'var(--rose)'}"></span><div><b>${esc(e.title)}</b><span>${esc(e.body)}</span></div></div>`).join('') : `<div class="note"><span class="dot" style="background:var(--line)"></span><div><b>오늘은 특별한 알림이 없어요</b><span>${M.last ? '다음 생리 예정 ' + esc(kd(M.next)) : '첫 기록이 생기면 알려드릴게요.'}</span></div></div>`;
  renderCal(M);
- const list = P ? ph.care : ph.self;
- $('#phase').innerHTML = `<h2>${esc(ph.n)}${M.last && M.phase !== 'late' ? ` <span class="small">· 주기 ${Math.min(M.day, M.cycle)}일째</span>` : ''}</h2><p>${esc(ph.b)}</p><h3>${P ? '이렇게 챙겨주세요' : '나를 위한 팁'}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${ph.gift.length ? `<h3>${P ? '이런 선물 어때요' : '있으면 좋은 것'}</h3><ul>${ph.gift.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}`;
+ const ck = (M.last && M.last.start) || 'none', di = diff('2026-01-01', T()), ul = a => `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+ const body = pick(ph.body, 1, ck, di, 'body')[0] || '';
+ let ph_h = `<h2>${esc(ph.n)}${M.last && M.phase !== 'late' ? ` <span class="small">· 주기 ${Math.min(M.day, M.cycle)}일째</span>` : ''}</h2><p>${esc(body)}</p>`;
+ if (P) {
+  ph_h += `<h3>오늘은 이렇게 챙겨주세요</h3>${ul(pick(ph.care, 3, ck, di, 'care'))}`;
+  const msg = pick(ph.msg, 1, ck, di, 'msg')[0];
+  if (msg) ph_h += `<h3>오늘 보내볼 한마디</h3><div class="note" style="margin:0;display:block"><b>"${esc(msg)}"</b><button class="btn ghost" data-act="copymsg" data-m="${esc(msg)}" style="width:100%;margin-top:8px;min-height:44px">복사해서 보내기</button></div>`;
+  const g = pick(ph.gift, 3, ck, di, 'gift'); if (g.length) ph_h += `<h3>이런 선물 어때요</h3>${ul(g)}`;
+  const d = pick(ph.date, 2, ck, di, 'date'); if (d.length) ph_h += `<h3>오늘의 데이트 추천</h3>${ul(d)}`;
+ } else {
+  ph_h += `<h3>오늘의 나를 위한 팁</h3>${ul(pick(ph.self, 3, ck, di, 'self'))}`;
+  const f = pick(ph.food, 2, ck, di, 'food'); if (f.length) ph_h += `<h3>먹으면 좋은 것</h3>${ul(f)}`;
+  const g = pick(ph.gift, 2, ck, di, 'gift'); if (g.length) ph_h += `<h3>있으면 좋은 것</h3>${ul(g)}`;
+ }
+ ph_h += `<p class="small" style="margin:14px 0 0">내용은 매일 바뀌어요</p>`;
+ $('#phase').innerHTML = ph_h;
  renderSet(M);
 }
 
@@ -280,7 +285,7 @@ function renderSet(M) {
  h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
- h += `<p class="small">지금까지 생리 기록 ${M.count}번 · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
+ h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
  $('#setbody').innerHTML = h;
@@ -400,6 +405,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
+ if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
  if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
  const M = M_();

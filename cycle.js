@@ -21,8 +21,8 @@ export function model(periods, settings = {}, t) {
   const defC = clampN(settings.cycle, 21, 45, 28), defL = clampN(settings.length, 2, 10, 5);
   const gaps = [];
   for (let i = 1; i < ps.length; i++) { const g = diff(ps[i - 1].start, ps[i].start); if (g >= 15 && g <= 60) gaps.push(g); }
-  const lg = gaps.slice(-6), cycle = lg.length ? Math.round(avg(lg)) : defC;
-  const lens = ps.filter(p => isDate(p.end) && p.end >= p.start).map(p => diff(p.start, p.end) + 1).filter(n => n <= 12).slice(-6);
+  const cycle = gaps.length ? Math.round(avg(gaps)) : defC; // 전체 기록의 평균
+  const lens = ps.filter(p => isDate(p.end) && p.end >= p.start).map(p => diff(p.start, p.end) + 1).filter(n => n <= 12);
   const len = lens.length ? Math.round(avg(lens)) : defL;
   const last = ps[ps.length - 1] || null, map = {}, R = { per: 5, pred: 4, ovu: 3, fert: 2 };
   const mark = (s, k) => { if (!map[s] || R[k] > R[map[s]]) map[s] = k; };
