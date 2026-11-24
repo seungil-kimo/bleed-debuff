@@ -180,6 +180,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.7.1', d: '11/24', items: ['사진이 안 올라갈 때 원인(권한·인터넷·사진 파일)을 정확히 알려줘요', '사진 읽는 방식을 보강했어요'] },
  { v: '1.7', d: '11/24', items: ['단계마다 사진을 최대 5장까지 넣을 수 있어요', '앱을 열 때마다 사진이 무작위로 바뀌고, 맨 위 사진을 누르면 다른 사진이 나와요', '사진 여러 장 한 번에 고르기 가능'] },
  { v: '1.6', d: '11/24', items: ['단계별 사진 추가: 설정에서 단계마다 사진을 고르면 맨 위 사진이 단계에 맞게 바뀌어요'] },
  { v: '1.5', d: '11/24', items: ['단계별 팁·선물·데이트 추천이 매일 바뀌어요 (내용 약 4배)', '함께 보는 사람에게 "오늘 보내볼 한마디" 추가', '기록하는 사람에게 "먹으면 좋은 것" 추가', '최근 6번이 아니라 전체 기록으로 예측해요'] },
@@ -457,9 +458,12 @@ document.addEventListener('click', async e => {
 async function shrink(file) {
  const url = URL.createObjectURL(file);
  try {
-  const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
-  const sc = Math.min(1, 480 / Math.max(img.naturalWidth, img.naturalHeight));
-  const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+  let img, W, H;
+  try { img = await createImageBitmap(file); W = img.width; H = img.height; }
+  catch (e) { img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; }); W = img.naturalWidth; H = img.naturalHeight; }
+  if (!W || !H) throw new Error('empty image');
+  const sc = Math.min(1, 480 / Math.max(W, H));
+  const c = document.createElement('canvas'); c.width = Math.round(W * sc); c.height = Math.round(H * sc);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   for (const q of [0.82, 0.7, 0.55, 0.4]) { const d = c.toDataURL('image/jpeg', q); if (d.length < 300000) return d; }
   return c.toDataURL('image/jpeg', 0.3);
@@ -472,12 +476,14 @@ document.addEventListener('change', async e => {
   const files = Array.from(e.target.files).slice(0, free.length);
   if (!files.length) return toast('이 단계는 사진이 5장 꽉 찼어요');
   if (e.target.files.length > files.length) toast(`5장까지라서 ${files.length}장만 올려요`); else toast('사진 올리는 중…');
-  let ok = 0;
+  let ok = 0, why = '';
   for (let i = 0; i < files.length; i++) {
-   try { const data = await shrink(files[i]); if (await w(() => setDoc(sub('photos', free[i]), { data, by: S.uid, updatedAt: Date.now() + i }))) ok++; }
-   catch (err) { console.error(err); }
+   let data;
+   try { data = await shrink(files[i]); } catch (err) { console.error(err); why = 'read'; continue; }
+   try { await setDoc(sub('photos', free[i]), { data, by: S.uid, updatedAt: Date.now() + i }); ok++; }
+   catch (err) { console.error(err); why = err.code === 'permission-denied' ? 'rule' : 'net'; }
   }
-  toast(ok ? `사진 ${ok}장을 저장했어요` : '사진을 읽지 못했어요. 다른 사진으로 해 주세요');
+  toast(ok ? `사진 ${ok}장을 저장했어요` : why === 'rule' ? '저장 권한이 없어요. Firebase 규칙에 photos 줄을 추가해 주세요' : why === 'net' ? '저장하지 못했어요. 인터넷 연결을 확인해 주세요' : '사진을 읽지 못했어요. 다른 사진으로 해 주세요');
   e.target.value = '';
   return;
  }
