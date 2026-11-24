@@ -104,7 +104,7 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 @keyframes nunchi{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:3px -2px}60%{translate:-3px 0}80%{translate:4px 1px}}
 @media (prefers-reduced-motion:reduce){.duo .bf{animation:none!important}}
 /* ── 걸어다니는 고양이 ── */
-.cat{position:absolute;left:0;top:var(--cat-top,80vh);width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
+.cat{position:absolute;left:0;top:0;width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .cat svg{width:100%;height:100%;overflow:visible;transition:transform .15s}
 .cat.left svg{transform:scaleX(-1)}
 .cat .leg{transform-box:fill-box;transform-origin:50% 0}
@@ -143,6 +143,15 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 @keyframes mwalkL{from{transform:scaleX(-1) rotate(-5deg) translateY(0)}to{transform:scaleX(-1) rotate(5deg) translateY(-4px)}}
 @keyframes mlove{from{transform:rotate(-10deg) scale(1)}to{transform:rotate(10deg) scale(1.08)}}
 @keyframes mbreath{from{transform:scale(1,1)}to{transform:scale(1.03,.97)}}
+.cat.still .masc{animation:mbreath 2s ease-in-out infinite alternate}
+.cat.edit{outline:2px dashed var(--lil);outline-offset:4px;border-radius:14px;touch-action:none;cursor:grab}
+.cat.edit .bub,.cat.edit .heart{display:none}
+.cat .ctool{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);display:none;gap:4px;white-space:nowrap}
+.cat.edit .ctool{display:flex}
+.cat .ctool button{font-size:12px;min-height:30px;padding:0 8px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.cat .ctool button[hidden]{display:none}
+.cbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--lil);border-radius:20px;padding:8px 8px 8px 14px;box-shadow:0 6px 24px rgba(0,0,0,.15);width:max-content;max-width:94vw;font-size:14px}
+.cbar[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -275,6 +284,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.15', d: '11/24', items: ['여자친구도 사진과 캐릭터를 넣고 뺄 수 있어요 (둘 다 똑같은 권한)'] },
+ { v: '1.14', d: '11/24', items: ['캐릭터를 원하는 만큼 넣을 수 있어요 (움짤도 가능)', '캐릭터마다 걷기/멈춤을 정할 수 있어요', '✏️ 편집 모드에서 캐릭터를 끌어서 원하는 자리에 둘 수 있어요', '위치와 걷기/멈춤은 둘 다 바꿀 수 있고, 바꾸면 상대 폰에도 바로 같은 자리에 떠요'] },
  { v: '1.13', d: '11/24', items: ['캐릭터가 화면에 붙어 있지 않고 앱 화면 위를 걸어다녀서, 스크롤하면 같이 올라가요'] },
  { v: '1.12', d: '11/24', items: ['캐릭터에 움짤(GIF)을 넣으면 움직이는 그대로 걸어다녀요 (650KB 이하)'] },
  { v: '1.11', d: '11/24', items: ['걸어다니는 캐릭터를 2개까지 넣을 수 있어요', '두 캐릭터가 마주치면 가끔 멈춰서 서로 애교를 부려요'] },
@@ -294,7 +305,7 @@ const NOTES = [
 const APP_VER = NOTES[0].v;
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
-const S = { mascots: {}, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const S = { mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
@@ -414,8 +425,9 @@ function renderCal(M) {
 
 const photoOwner = () => (S.couple && S.couple.photoOwner) || null;
 const ownerAlive = () => { const o = photoOwner(); return !!(o && S.couple.members && S.couple.members[o]); };
-const canPhoto = () => photoOwner() === S.uid || (!ownerAlive() && role() === 'partner');
+const canPhoto = () => true; // 사진·캐릭터는 둘 다 넣고 뺄 수 있어요
 async function ensureOwner() {
+ return true; // 둘 다 사진·캐릭터 관리 가능 (예전 버전 호환용으로 남겨 둠)
  if (photoOwner() === S.uid) return true;
  try { await updateDoc(cRef(), { photoOwner: S.uid }); return true; }
  catch (err) { console.error(err); toast('사진 권한을 설정하지 못했어요. Firebase 규칙을 확인해 주세요'); return false; }
@@ -432,15 +444,15 @@ function renderSet(M) {
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
  const PSLOTS = [['default', '기본 (사진 없는 단계에 나옴)'], ['period', '생리 기간'], ['pms', '생리 전 (PMS)'], ['follicular', '생리 후 회복기'], ['fertile', '가임기'], ['ovu', '배란 예정일'], ['luteal', '배란 후'], ['late', '예정일 지남']];
  if (canPhoto()) {
-  h += `<p class="lbl" style="margin-top:14px">사진 (남자친구만 넣을 수 있어요)</p><p class="small" style="margin:0 0 6px">맨 위 왼쪽은 여자친구, 오른쪽은 남자친구 사진이에요. 단계마다 최대 5장, 앱을 열 때마다 무작위로 나와요. 사진을 누르면 다른 사진으로 바뀌어요. 지우려면 아래 사진을 두 번 누르세요.</p>`;
+  h += `<p class="lbl" style="margin-top:14px">사진 (둘 다 넣고 바꿀 수 있어요)</p><p class="small" style="margin:0 0 6px">맨 위 왼쪽은 여자친구, 오른쪽은 남자친구 사진이에요. 단계마다 최대 5장, 앱을 열 때마다 무작위로 나와요. 사진을 누르면 다른 사진으로 바뀌어요. 지우려면 아래 사진을 두 번 누르세요.</p>`;
   for (const [side, title] of [['gf', '👩 여자친구 사진 (왼쪽)'], ['bf', '👨 남자친구 사진 (오른쪽)']]) {
    h += `<details id="pd-${side}" style="padding:8px 0" ${openDet.has('pd-' + side) ? 'open' : ''}><summary>${title}</summary>` + PSLOTS.map(([k, l]) => { const ps = (S.photos[side] || {})[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*" multiple data-photo="${k}" data-side="${side}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="사진 지우기" style="padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden"><img src="${esc(x.data)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>` : ''}</div>`; }).join('') + `</details>`;
   }
- h += `<p class="lbl" style="margin-top:12px">걸어다니는 캐릭터 (최대 2개)</p><p class="small" style="margin:0 0 4px"><b>움짤(GIF, 650KB 이하)</b>을 넣으면 움직이면서 걸어다녀요. 일반 사진은 배경이 투명한 PNG가 가장 예뻐요. 그림이 없으면 고양이가 나와요. 둘이 마주치면 가끔 서로 애교를 부려요.</p>` + [['mascot', '캐릭터 1'], ['mascot2', '캐릭터 2']].map(([k, l]) => { const m = S.mascots[k]; return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">${m ? `<img src="${esc(m)}" alt="" style="width:44px;height:44px;object-fit:contain">` : `<span style="font-size:28px;width:44px;text-align:center">${k === 'mascot' ? '🐈' : '➕'}</span>`}<span style="flex:1">${l}</span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${m ? '바꾸기' : '그림 선택'}<input type="file" accept="image/*" data-mascot="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${m ? `<button class="btn ghost" data-act="delmascot" data-k="${k}" style="flex:none;min-height:40px;font-size:14px">빼기</button>` : ''}</div>`; }).join('');
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
- h += `<label class="row" style="margin-top:10px">🐈 걸어다니는 캐릭터<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
+ h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p><div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 캐릭터 편집하기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>`;
+ h += `<label class="row" style="margin-top:10px">🐈 캐릭터 보이기<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
  $('#setbody').innerHTML = h;
@@ -513,7 +525,8 @@ function subscribe() {
  S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
- S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; S.mascots = {}; sn.docs.forEach(d => { const x = d.data(); if (d.id === 'mascot' || d.id === 'mascot2') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.mascots[d.id] = x.data; return; } const pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; if (window.catRefresh) window.catRefresh(); if (S.got.size >= 3) render(); }, () => { }));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; S.mascots = {}; sn.docs.forEach(d => { const x = d.data(); if (d.id === 'mascot' || d.id === 'mascot2') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.mascots[d.id] = x.data; return; } const pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.chars = sn.docs.map(d => { const x = d.data(); return { id: d.id, data: typeof x.data === 'string' && x.data.startsWith('data:image/') ? x.data : '', x: Number.isFinite(x.x) ? x.x : 0.5, y: Number.isFinite(x.y) ? x.y : 300, mode: x.mode === 'still' ? 'still' : 'walk', at: x.createdAt || 0 }; }).filter(c => c.data).sort((a, b) => a.at - b.at); S.charsLoaded = true; window.charSync && window.charSync(); tryMigrate(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -561,7 +574,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
- if (a === 'delmascot') { if (!(await ensureOwner())) return; await w(() => deleteDoc(sub('photos', b.dataset.k === 'mascot2' ? 'mascot2' : 'mascot')), '캐릭터를 뺐어요'); return; }
+ if (a === 'charedit') { window.charEdit && window.charEdit(true); return; }
  if (a === 'delphoto') { if (!canPhoto()) return toast('사진은 남자친구만 지울 수 있어요'); const id = b.dataset.id; if (delPhotoArm === id && !(await ensureOwner())) return; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); return; }
  if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
@@ -612,21 +625,42 @@ async function shrinkPng(file) {
  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
  const d = c.toDataURL('image/png'); return d.length < 400000 ? d : c.toDataURL('image/jpeg', 0.8);
 }
-document.addEventListener('change', async e => {
- if (e.target.dataset && e.target.dataset.mascot && e.target.files && e.target.files[0] && S.code) {
-  if (!canPhoto()) return toast('캐릭터 그림은 남자친구만 바꿀 수 있어요');
-  if (!(await ensureOwner())) return;
-  const mk = e.target.dataset.mascot === 'mascot2' ? 'mascot2' : 'mascot';
-  const f = e.target.files[0], isGif = f.type === 'image/gif' || /\.gif$/i.test(f.name), big = f.size > 650000;
+async function readChar(f) {
+ const isGif = f.type === 'image/gif' || /\.gif$/i.test(f.name), big = f.size > 650000;
+ if (isGif && !big) return { data: await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }), note: '' };
+ return { data: await shrinkPng(f), note: isGif ? 'big' : '' };
+}
+async function addChars(files) {
+ if (!canPhoto()) return toast('캐릭터는 남자친구만 넣을 수 있어요');
+ if (!(await ensureOwner())) return;
+ toast('캐릭터 넣는 중…');
+ const appTop = $('#app').getBoundingClientRect().top + scrollY, baseY = Math.max(0, scrollY + innerHeight * 0.55 - appTop);
+ let ok = 0, big = 0;
+ for (let i = 0; i < files.length; i++) {
   try {
-   let data;
-   if (isGif && !big) data = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }); // 움짤은 그대로 저장해서 계속 움직이게
-   else data = await shrinkPng(f);
-   await setDoc(sub('photos', mk), { data, by: S.uid, updatedAt: Date.now() });
-   toast(isGif ? (big ? '움짤이 커서(650KB 초과) 멈춘 그림으로 넣었어요' : '움짤 캐릭터를 넣었어요') : '캐릭터를 넣었어요');
+   const r = await readChar(files[i]); if (r.note) big++;
+   await setDoc(doc(collection(db, 'couples', S.code, 'chars')), { data: r.data, x: Math.min(0.85, 0.15 + i * 0.18), y: Math.round(baseY + (i % 3) * 30), mode: 'walk', createdAt: Date.now() + i, by: S.uid });
+   ok++;
+  } catch (err) { console.error(err); if (err.code === 'permission-denied') { toast('저장 권한이 없어요. Firebase 규칙을 확인해 주세요'); return; } }
+ }
+ toast(ok ? `캐릭터 ${ok}개를 넣었어요${big ? ` (큰 움짤 ${big}개는 멈춘 그림으로)` : ''}` : '그림을 읽지 못했어요. 다른 그림으로 해 주세요');
+}
+// 예전 버전(캐릭터 1·2 칸)에 넣은 그림을 새 방식으로 옮겨요 (남자친구 폰에서 한 번만)
+let migrated = false;
+async function tryMigrate() {
+ if (migrated || !S.charsLoaded || !S.couple) return;
+ const old = ['mascot', 'mascot2'].filter(k => S.mascots[k]); if (!old.length) return;
+ migrated = true;
+ try {
+  for (let i = 0; i < old.length; i++) {
+   await setDoc(doc(collection(db, 'couples', S.code, 'chars')), { data: S.mascots[old[i]], x: 0.2 + i * 0.4, y: 300, mode: 'walk', createdAt: Date.now() + i, by: S.uid });
+   await deleteDoc(sub('photos', old[i]));
   }
-  catch (err) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '그림을 읽지 못했어요. 다른 그림으로 해 주세요'); }
-  e.target.value = ''; return;
+ } catch (e) { console.error(e); }
+}
+document.addEventListener('change', async e => {
+ if (e.target.dataset && e.target.dataset.addchar && e.target.files && e.target.files.length && S.code) {
+  await addChars(Array.from(e.target.files)); e.target.value = ''; return;
  }
  const pk = e.target.dataset && e.target.dataset.photo;
  if (pk && e.target.files && e.target.files[0] && S.code) {
@@ -664,62 +698,110 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // 앱을 열어 둔 상태에서 온 알림은 화면 안에 보여줘요
 isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.notification && p.notification.title) || '새 알림')); }).catch(() => { });
 
-// ── 걸어다니는 캐릭터 (최대 2마리) ──
+// ── 캐릭터: 원하는 만큼, 걷기/멈춤, 끌어서 위치 정하기 (둘이 같이 보고 같이 바꿈) ──
 {
  const tpl = document.getElementById('cat');
- tpl.removeAttribute('id'); tpl.querySelector('#catbub').removeAttribute('id'); tpl.querySelector('#masc').removeAttribute('id');
+ tpl.remove(); tpl.removeAttribute('id'); tpl.hidden = false; tpl.querySelector('#catbub').removeAttribute('id'); tpl.querySelector('#masc').removeAttribute('id');
+ const app = document.getElementById('app'); app.style.position = 'relative';
+ const layer = document.createElement('div'); layer.id = 'chars'; layer.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:0;z-index:4'; app.appendChild(layer);
+ const bar = document.createElement('div'); bar.className = 'cbar'; bar.hidden = true;
+ bar.innerHTML = '<span>캐릭터를 끌어서 옮기세요</span><label class="btn ghost addc" style="position:relative;flex:none;min-height:44px;display:flex;align-items:center;font-size:14px">+ 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><button class="btn" data-cact="done" style="flex:none;min-height:44px;padding:0 20px">완료</button>';
+ document.body.appendChild(bar);
  const catOn = () => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } };
  const rand = (a, b) => a + Math.random() * (b - a), any = a => a[Math.floor(Math.random() * a.length)];
  const SAY_SIT = ['zZ', '…', '냐아', '꾹꾹', '♪'], SAY_LOVE = ['냥♡', '쓰다듬어 줘', '헤헤', '좋아해', '골골골…', '간식 주세요', '최고야', '😽', '안아 줘', '뿌잉'];
- const walkers = [];
- function setMode(w, m, ms) { w.mode = m; w.until = performance.now() + (ms || 0); w.el.className = 'cat ' + m + (w.dir < 0 ? ' left' : '') + (w.img ? ' has-m' : ''); }
+ const W = w => w.img ? 76 : 68, H = w => w.img ? 76 : 52;
+ let editing = false, drag = null;
+ const ws = new Map();
+ function cls(w) { w.el.className = 'cat ' + w.anim + (w.dir < 0 ? ' left' : '') + (w.img ? ' has-m' : '') + (editing ? ' edit' : ''); }
+ function setAnim(w, a, ms) { w.anim = a; w.until = performance.now() + (ms || 0); cls(w); }
  function hearts(w, n) { for (let i = 0; i < n; i++) { const h = document.createElement('span'); h.className = 'heart'; h.textContent = '♥'; h.style.setProperty('--dx', (Math.random() * 40 - 20).toFixed(0) + 'px'); h.style.animationDelay = (i * 0.12).toFixed(2) + 's'; w.el.appendChild(h); setTimeout(() => h.remove(), 1600 + i * 120); } }
- function make(i) {
-  const el = i === 0 ? tpl : tpl.cloneNode(true);
-  if (i > 0) tpl.after(el);
-  const w = { el, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), img: '', active: i === 0, speed: i === 0 ? 38 : 46, x: rand(20, Math.max(40, innerWidth - 100)), dir: i === 0 ? 1 : -1, mode: 'walk', until: 0 };
+ function make(id) {
+  const el = tpl.cloneNode(true);
+  const tool = document.createElement('div'); tool.className = 'ctool';
+  tool.innerHTML = '<button data-cact="mode"></button><button data-cact="del">✕</button>';
+  el.appendChild(tool); layer.appendChild(el);
+  const w = { id, el, tool, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), img: '', mode: 'walk', fx: 0.5, y: 300, x: 0, dir: Math.random() < .5 ? 1 : -1, anim: 'walk', until: 0, speed: rand(32, 48), placed: false };
   el.addEventListener('pointerdown', e => {
+   if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
+   if (editing) { if (w.id === '_cat') return; drag = { w, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; el.setPointerCapture(e.pointerId); return; }
    w.bub.classList.remove('zz'); w.bub.textContent = any(SAY_LOVE);
-   hearts(w, w.mode === 'love' ? 2 : 4); setMode(w, 'love', 2600);
+   hearts(w, w.anim === 'love' ? 2 : 4); setAnim(w, 'love', 2600);
    if (navigator.vibrate) try { navigator.vibrate(20); } catch (er) { }
   });
-  setMode(w, 'walk', 2000 + i * 1500); walkers.push(w);
+  el.addEventListener('pointermove', e => {
+   if (!drag || drag.w !== w) return;
+   const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+   w.x = Math.max(0, Math.min(layer.clientWidth - W(w), drag.ox + dx)); w.y = Math.max(0, drag.oy + dy); place(w);
+  });
+  const up = async () => {
+   if (!drag || drag.w !== w) return; const moved = drag.moved; drag = null; if (!moved) return;
+   w.fx = w.x / Math.max(1, layer.clientWidth - W(w));
+   try { await updateDoc(sub('chars', w.id), { x: +w.fx.toFixed(4), y: Math.round(w.y), movedBy: S.uid, movedAt: Date.now() }); } catch (er) { console.error(er); toast('위치를 저장하지 못했어요'); }
+  };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  ws.set(id, w); return w;
  }
- make(0); make(1);
- window.catRefresh = () => {
-  const imgs = [S.mascots.mascot, S.mascots.mascot2].filter(Boolean);
-  walkers.forEach((w, i) => { w.img = imgs[i] || ''; w.active = i === 0 || !!w.img; if (w.img) { if (w.im.getAttribute('src') !== w.img) w.im.src = w.img; } else w.im.removeAttribute('src'); setMode(w, w.mode, Math.max(0, w.until - performance.now())); });
+ function place(w) { w.el.style.transform = `translate(${w.x.toFixed(1)}px, ${w.y.toFixed(1)}px)`; }
+ function toolText(w) { const [m, d] = w.tool.children; m.textContent = w.mode === 'walk' ? '🚶 걷는 중' : '⏸ 멈춤'; d.hidden = !canPhoto(); }
+ // 데이터 → 화면
+ window.charSync = () => {
+  const list = S.chars.length ? S.chars : [{ id: '_cat', data: '', x: 0.5, y: null, mode: 'walk' }];
+  const keep = new Set(list.map(c => c.id));
+  for (const [id, w] of ws) if (!keep.has(id)) { w.el.remove(); ws.delete(id); }
+  for (const c of list) {
+   const w = ws.get(c.id) || make(c.id);
+   if (w.img !== c.data) { w.img = c.data; if (c.data) w.im.src = c.data; else w.im.removeAttribute('src'); }
+   const y = c.y == null ? Math.max(120, innerHeight - 70 - (app.getBoundingClientRect().top + scrollY)) : c.y;
+   const changed = !w.placed || Math.abs(w.fx - c.x) > 0.001 || Math.abs(w.y - y) > 1 || w.mode !== c.mode;
+   if (changed && !(drag && drag.w === w)) {
+    const prevMode = w.mode; w.fx = c.x; w.y = y; w.mode = c.mode;
+    if (w.mode === 'still' || !w.placed || prevMode !== w.mode || editing) w.x = w.fx * Math.max(1, layer.clientWidth - W(w));
+    w.placed = true; setAnim(w, w.mode === 'still' ? 'still' : 'walk', rand(2000, 5000));
+   }
+   toolText(w); place(w);
+  }
  };
- // 처음 열었을 때 화면 맨 아래 높이에 땅을 깔아요. 페이지에 붙어 있어서 스크롤하면 같이 올라가요.
- const ground = () => { for (const w of walkers) { const h = w.img ? 76 : 52; w.el.style.setProperty('--cat-top', Math.max(120, innerHeight - h - 10) + 'px'); } };
- ground(); addEventListener('orientationchange', () => setTimeout(ground, 300));
- const _cr = window.catRefresh; window.catRefresh = () => { _cr(); ground(); };
+ window.charEdit = on => {
+  editing = on; bar.hidden = !on; bar.querySelector('.addc').hidden = !canPhoto();
+  for (const w of ws.values()) { if (on) w.x = w.fx * Math.max(1, layer.clientWidth - W(w)); setAnim(w, on ? 'still' : (w.mode === 'still' ? 'still' : 'walk'), 1000); place(w); }
+  if (on) toast(S.chars.length ? '캐릭터를 끌어서 옮기고, 버튼으로 걷기/멈춤을 바꿔요' : '먼저 캐릭터를 넣어 주세요');
+ };
+ // 편집 도구 버튼
+ document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-cact]'); if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.cact === 'done') return window.charEdit(false);
+  const el = b.closest('.cat'), w = [...ws.values()].find(v => v.el === el); if (!w || w.id === '_cat') return;
+  if (b.dataset.cact === 'mode') { const nm = w.mode === 'walk' ? 'still' : 'walk'; try { await updateDoc(sub('chars', w.id), { mode: nm, movedBy: S.uid, movedAt: Date.now() }); } catch (er) { toast('바꾸지 못했어요'); } }
+  if (b.dataset.cact === 'del') {
+   if (!canPhoto()) return toast('캐릭터는 남자친구만 뺄 수 있어요');
+   if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = '삭제?'; setTimeout(() => { b.dataset.arm = ''; b.textContent = '✕'; }, 2500); return; }
+   try { await deleteDoc(sub('chars', w.id)); toast('캐릭터를 뺐어요'); } catch (er) { toast('빼지 못했어요'); }
+  }
+ }, true);
  let last = performance.now();
  function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000), vw = innerWidth, on = catOn(); last = now;
-  for (const w of walkers) {
-   if (!on || !w.active) { w.el.hidden = true; continue; }
-   w.el.hidden = false;
-   const W = w.img ? 76 : 68;
-   if (w.mode === 'walk') {
+  const dt = Math.min(0.05, (now - last) / 1000), on = catOn(), vw = layer.clientWidth; last = now;
+  layer.hidden = !on && !editing;
+  for (const w of ws.values()) {
+   if (editing || drag) { continue; }
+   if (w.anim === 'love') { if (now > w.until) setAnim(w, w.mode === 'still' ? 'still' : 'walk', rand(4000, 8000)); continue; }
+   if (w.mode === 'still') { const tx = w.fx * Math.max(1, vw - W(w)); if (Math.abs(tx - w.x) > 0.5) { w.x = tx; place(w); } continue; }
+   if (w.anim === 'walk') {
     w.x += w.dir * w.speed * dt;
-    if (w.x < 4) { w.x = 4; w.dir = 1; setMode(w, 'walk', w.until - now); }
-    if (w.x > vw - W - 4) { w.x = vw - W - 4; w.dir = -1; setMode(w, 'walk', w.until - now); }
-    // 둘이 마주치면 가끔 같이 멈춰서 애교
-    const o = walkers.find(v => v !== w && v.active && !v.el.hidden && v.mode === 'walk');
-    if (o && Math.abs(o.x - w.x) < 30 && o.dir !== w.dir && now > w.until && Math.random() < 0.5) { for (const v of [w, o]) { v.bub.textContent = any(['♡', '안녕', '헤헤', '같이 가자']); hearts(v, 2); setMode(v, 'love', 1800); } }
-    else if (now > w.until && Math.random() < dt * 0.12) { setMode(w, 'sit', rand(2500, 5000)); w.bub.textContent = any(SAY_SIT); w.bub.classList.toggle('zz', Math.random() < 0.5); }
-   } else if (w.mode === 'sit') {
-    if (now > w.until) { if (Math.random() < 0.4) w.dir = -w.dir; w.bub.classList.remove('zz'); setMode(w, 'walk', rand(4000, 9000)); }
-   } else if (w.mode === 'love') {
-    if (now > w.until) setMode(w, 'walk', rand(4000, 8000));
-   }
-   w.el.style.transform = `translateX(${w.x.toFixed(1)}px)`;
+    if (w.x < 2) { w.x = 2; w.dir = 1; cls(w); }
+    if (w.x > vw - W(w) - 2) { w.x = vw - W(w) - 2; w.dir = -1; cls(w); }
+    if (now > w.until && Math.random() < dt * 0.12) { setAnim(w, 'sit', rand(2500, 5000)); w.bub.textContent = any(SAY_SIT); w.bub.classList.toggle('zz', Math.random() < 0.5); }
+   } else if (w.anim === 'sit' && now > w.until) { if (Math.random() < 0.4) w.dir = -w.dir; w.bub.classList.remove('zz'); setAnim(w, 'walk', rand(4000, 9000)); }
+   place(w);
   }
   requestAnimationFrame(frame);
  }
  window.catToggle = on => { try { localStorage.setItem('bd-cat', on ? 'on' : 'off'); } catch (e) { } };
+ addEventListener('resize', () => window.charSync());
+ window.charSync();
  requestAnimationFrame(frame);
 }
 // ── 시작 ──
