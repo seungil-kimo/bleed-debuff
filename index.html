@@ -201,6 +201,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
     <div id="notecard"></div>
     <div id="codecard"></div>
     <div id="pushcard"></div>
+    <div id="charAnchor"></div>
     <div class="hero" id="hero"></div>
     <section><h2>오늘의 알림</h2><div id="notes"></div></section>
     <section>
@@ -285,6 +286,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.18', d: '11/24', items: ['제작자 노트를 닫으면 캐릭터 위치가 어긋나 보이던 버그 수정', '커플 코드·알림 카드가 있든 없든 두 폰에서 캐릭터가 같은 자리에 보여요'] },
  { v: '1.17', d: '11/24', items: ['단계별 사진 칸에 움짤(GIF)과 영상도 넣을 수 있어요', '영상은 자동으로 작게(240px, 최대 6초, 소리 없이) 줄여서 반복 재생돼요'] },
  { v: '1.16', d: '11/24', items: ['설정 → 캐릭터 목록에서 캐릭터마다 "멈추기 / 걷게 하기" 버튼이 생겼어요', '"모두 멈추기 / 모두 걷게 하기" 버튼 추가', '기본 고양이도 멈추게 하거나 위치를 옮길 수 있어요 (상대 폰에도 똑같이)'] },
  { v: '1.15', d: '11/24', items: ['여자친구도 사진과 캐릭터를 넣고 뺄 수 있어요 (둘 다 똑같은 권한)'] },
@@ -684,7 +686,7 @@ async function addChars(files) {
  if (!canPhoto()) return toast('캐릭터는 남자친구만 넣을 수 있어요');
  if (!(await ensureOwner())) return;
  toast('캐릭터 넣는 중…');
- const appTop = $('#app').getBoundingClientRect().top + scrollY, baseY = Math.max(0, scrollY + innerHeight * 0.55 - appTop);
+ const lay = document.getElementById('chars'), appTop = (lay || $('#app')).getBoundingClientRect().top + scrollY, baseY = scrollY + innerHeight * 0.55 - appTop;
  let ok = 0, big = 0;
  for (let i = 0; i < files.length; i++) {
   try {
@@ -754,6 +756,10 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  tpl.remove(); tpl.removeAttribute('id'); tpl.hidden = false; tpl.querySelector('#catbub').removeAttribute('id'); tpl.querySelector('#masc').removeAttribute('id');
  const app = document.getElementById('app'); app.style.position = 'relative';
  const layer = document.createElement('div'); layer.id = 'chars'; layer.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:0;z-index:4'; app.appendChild(layer);
+ // 캐릭터 위치의 기준점: 제작자 노트·커플 코드·알림 카드 "아래". 그 카드들이 생기거나 사라져도 캐릭터가 내용과 같이 움직여요.
+ const anchor = document.getElementById('charAnchor');
+ let lTop = 0; const syncTop = () => { const t = anchor.offsetTop; if (t !== lTop) { lTop = t; layer.style.top = t + 'px'; } };
+ new ResizeObserver(syncTop).observe(app); syncTop();
  const bar = document.createElement('div'); bar.className = 'cbar'; bar.hidden = true;
  bar.innerHTML = '<span>캐릭터를 끌어서 옮기세요</span><label class="btn ghost addc" style="position:relative;flex:none;min-height:44px;display:flex;align-items:center;font-size:14px">+ 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><button class="btn" data-cact="done" style="flex:none;min-height:44px;padding:0 20px">완료</button>';
  document.body.appendChild(bar);
@@ -783,7 +789,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   el.addEventListener('pointermove', e => {
    if (!drag || drag.w !== w) return;
    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
-   w.x = Math.max(0, Math.min(layer.clientWidth - W(w), drag.ox + dx)); w.y = Math.max(0, drag.oy + dy); place(w);
+   w.x = Math.max(0, Math.min(layer.clientWidth - W(w), drag.ox + dx)); w.y = Math.max(-lTop, drag.oy + dy); place(w);
   });
   const up = async () => {
    if (!drag || drag.w !== w) return; const moved = drag.moved; drag = null; if (!moved) return;
@@ -808,7 +814,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   for (const c of list) {
    const w = ws.get(c.id) || make(c.id);
    if (w.img !== c.data) { w.img = c.data; if (c.data) w.im.src = c.data; else w.im.removeAttribute('src'); }
-   const y = c.y == null ? Math.max(120, innerHeight - 70 - (app.getBoundingClientRect().top + scrollY)) : c.y;
+   syncTop(); const y = c.y == null ? Math.max(60, innerHeight - 70 - (layer.getBoundingClientRect().top + scrollY)) : c.y;
    const changed = !w.placed || Math.abs(w.fx - c.x) > 0.001 || Math.abs(w.y - y) > 1 || w.mode !== c.mode;
    if (changed && !(drag && drag.w === w)) {
     const prevMode = w.mode; w.fx = c.x; w.y = y; w.mode = c.mode;
@@ -839,7 +845,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  }, true);
  let last = performance.now();
  function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000), on = catOn(), vw = layer.clientWidth; last = now;
+  const dt = Math.min(0.05, (now - last) / 1000), on = catOn(), vw = layer.clientWidth; last = now; syncTop();
   layer.hidden = !on && !editing;
   for (const w of ws.values()) {
    if (editing || drag) { continue; }
