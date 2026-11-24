@@ -123,7 +123,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   </div>
 
   <div id="app" hidden>
-    <div class="top"><h1>출혈디버프</h1><p class="sub" id="who"></p></div>
+    <div class="top" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h1>출혈디버프</h1><p class="sub" id="who"></p></div><img id="face" alt="" hidden style="cursor:pointer;width:84px;height:84px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--rose)"></div>
     <div id="notecard"></div>
     <div id="codecard"></div>
     <div id="pushcard"></div>
@@ -180,6 +180,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.7', d: '11/24', items: ['단계마다 사진을 최대 5장까지 넣을 수 있어요', '앱을 열 때마다 사진이 무작위로 바뀌고, 맨 위 사진을 누르면 다른 사진이 나와요', '사진 여러 장 한 번에 고르기 가능'] },
+ { v: '1.6', d: '11/24', items: ['단계별 사진 추가: 설정에서 단계마다 사진을 고르면 맨 위 사진이 단계에 맞게 바뀌어요'] },
  { v: '1.5', d: '11/24', items: ['단계별 팁·선물·데이트 추천이 매일 바뀌어요 (내용 약 4배)', '함께 보는 사람에게 "오늘 보내볼 한마디" 추가', '기록하는 사람에게 "먹으면 좋은 것" 추가', '최근 6번이 아니라 전체 기록으로 예측해요'] },
  { v: '1.4', d: '11/24', items: ['안내 화면과 시작 화면이 겹쳐 보이던 문제 수정'] },
  { v: '1.3', d: '11/24', items: ['더블터치·두 손가락 확대 막기', '업데이트하면 맨 위에 제작자 노트가 떠요'] },
@@ -190,7 +192,7 @@ const NOTES = [
 const APP_VER = NOTES[0].v;
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
-const S = { uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const S = { photos: {}, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
@@ -233,6 +235,8 @@ function render() {
  const M = M_(), P = role() === 'partner', ph = PH[M.phase];
  $('#who').textContent = P ? '함께 보는 사람 화면' : '기록하는 사람 화면';
  renderPush();
+ const face = $('#face'), fsrc = facePick(M.phase);
+ if (fsrc) { if (face.getAttribute('src') !== fsrc) face.src = fsrc; face.style.borderColor = ph.c; face.hidden = false; } else face.hidden = true;
  const nt = NOTES[0];
  $('#notecard').innerHTML = seenVer() === APP_VER ? '' : `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--lil)"><b>📝 제작자 노트 v${esc(nt.v)}</b><ul style="margin:6px 0 0;padding-left:20px;font-size:14px">${nt.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ghost" data-act="seenote" style="width:100%;margin-top:10px;min-height:44px">확인</button></div>`;
  const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid);
@@ -263,6 +267,18 @@ function render() {
  renderSet(M);
 }
 
+// 단계별 사진 중 하나를 무작위로. 앱을 열 때마다 새로 고르고, 사진을 누르면 다른 사진으로 바뀌어요.
+let faceSel = { key: '', id: '' };
+function facePick(phase, reroll) {
+ const list = (S.photos[phase] && S.photos[phase].length) ? S.photos[phase] : (S.photos.default || []), key = (S.photos[phase] && S.photos[phase].length) ? phase : 'default';
+ if (!list.length) return '';
+ let cur = list.find(x => x.id === faceSel.id);
+ if (reroll || faceSel.key !== key || !cur) {
+  const pool = list.length > 1 ? list.filter(x => x.id !== faceSel.id) : list;
+  cur = pool[Math.floor(Math.random() * pool.length)]; faceSel = { key, id: cur.id };
+ }
+ return cur.data;
+}
 function renderCal(M) {
  const [y, mo] = S.month.split('-').map(Number), t = T();
  $('#mt').textContent = `${y}년 ${mo}월`;
@@ -286,12 +302,14 @@ function renderSet(M) {
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
+ const PSLOTS = [['default', '기본 (사진이 없는 단계)'], ['period', '생리 기간'], ['pms', '생리 전 (PMS)'], ['follicular', '생리 후 회복기'], ['fertile', '가임기'], ['ovu', '배란 예정일'], ['luteal', '배란 후'], ['late', '예정일 지남']];
+ h += `<p class="lbl">단계별 사진 (단계마다 최대 5장)</p><p class="small" style="margin:0 0 6px">앱을 열 때마다 그 단계 사진 중 하나가 무작위로 나와요. 맨 위 사진을 누르면 다른 사진으로 바뀌어요. 사진이 없는 단계는 기본 사진이 나와요. 지우려면 사진을 두 번 누르세요.</p>` + PSLOTS.map(([k, l]) => { const ps = S.photos[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*" multiple data-photo="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="사진 지우기" style="padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden"><img src="${esc(x.data)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>` : ''}</div>`; }).join('');
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
  $('#setbody').innerHTML = h;
 }
 
-let F = null, delArm = false, leaveArm = false;
+let F = null, delArm = false, leaveArm = false, delPhotoArm = null;
 function openDay(s) {
  const M = M_(), P = role() === 'partner', L = S.logs[s] || {}, k = M.map[s], t = T();
  F = { flow: L.flow ?? null, pain: L.pain ?? null, mood: Array.isArray(L.mood) ? L.mood.filter(x => MOODS.includes(x)) : [], sym: Array.isArray(L.sym) ? L.sym.filter(x => SYMS.includes(x)) : [], memo: typeof L.memo === 'string' ? L.memo : '' };
@@ -358,6 +376,7 @@ function subscribe() {
  S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = {}; sn.docs.forEach(d => { const x = d.data(), k = d.id.split('-')[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[k] = o[k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const k in o) o[k].sort((a, b) => a.at - b.at); S.photos = o; if (S.got.size >= 3) render(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -405,6 +424,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
+ if (a === 'delphoto') { const id = b.dataset.id; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); return; }
  if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
  if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
@@ -433,15 +453,45 @@ document.addEventListener('click', async e => {
   leaveLocal();
  }
 });
+// 사진은 폰에서 작게 줄여서(긴 변 480px) 저장해요
+async function shrink(file) {
+ const url = URL.createObjectURL(file);
+ try {
+  const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+  const sc = Math.min(1, 480 / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  for (const q of [0.82, 0.7, 0.55, 0.4]) { const d = c.toDataURL('image/jpeg', q); if (d.length < 300000) return d; }
+  return c.toDataURL('image/jpeg', 0.3);
+ } finally { URL.revokeObjectURL(url); }
+}
+document.addEventListener('change', async e => {
+ const pk = e.target.dataset && e.target.dataset.photo;
+ if (pk && e.target.files && e.target.files[0] && S.code) {
+  const used = new Set((S.photos[pk] || []).map(x => x.id)), free = [0, 1, 2, 3, 4].map(i => pk + '-' + i).filter(id => !used.has(id)).slice(0, Math.max(0, 5 - used.size));
+  const files = Array.from(e.target.files).slice(0, free.length);
+  if (!files.length) return toast('이 단계는 사진이 5장 꽉 찼어요');
+  if (e.target.files.length > files.length) toast(`5장까지라서 ${files.length}장만 올려요`); else toast('사진 올리는 중…');
+  let ok = 0;
+  for (let i = 0; i < files.length; i++) {
+   try { const data = await shrink(files[i]); if (await w(() => setDoc(sub('photos', free[i]), { data, by: S.uid, updatedAt: Date.now() + i }))) ok++; }
+   catch (err) { console.error(err); }
+  }
+  toast(ok ? `사진 ${ok}장을 저장했어요` : '사진을 읽지 못했어요. 다른 사진으로 해 주세요');
+  e.target.value = '';
+  return;
+ }
+});
 document.addEventListener('change', e => {
  const k = e.target.dataset && e.target.dataset.n; if (!k || !S.code) return;
  const notify = { ...(S.device.notify || {}), [k]: e.target.checked };
  w(() => setDoc(devRef(), { notify, role: role() }, { merge: true }));
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+document.addEventListener('click', e => { if (e.target.id === 'face') { const src = facePick(M_().phase, true); if (src) e.target.src = src; } });
 // 두 손가락 확대 막기 (아이폰)
 for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { render(); if (S.pushState === 'on') pushInit(false); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { faceSel = { key: '', id: '' }; render(); if (S.pushState === 'on') pushInit(false); } });
 
 // 앱을 열어 둔 상태에서 온 알림은 화면 안에 보여줘요
 isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.notification && p.notification.title) || '새 알림')); }).catch(() => { });
