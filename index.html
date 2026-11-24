@@ -86,24 +86,17 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;z-index:9;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
 .duo{position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:10px;background:var(--card);border-radius:28px;padding:18px 18px 12px;margin-bottom:14px;overflow:hidden}
-.pp{position:relative;justify-self:center;transition:transform .4s ease}
+.pp{position:relative;justify-self:center}
 .pp img,.pp video{display:block;width:min(130px,36vw);height:min(130px,36vw);border-radius:50%;object-fit:cover;border:4px solid var(--line);cursor:pointer;background:var(--line)}
 .pp img[src=""],.pp img:not([src]){visibility:hidden}
 .pp video[hidden],.pp img[hidden]{display:none}
 .pp .tag{position:absolute;font-size:30px;line-height:1;pointer-events:none}
 .gf .tag{right:-6px;top:-6px}.bf .tag{left:-4px;top:-2px}
 .duocap{grid-column:1/-1;text-align:center;margin:6px 0 0;font-size:14px;color:var(--mute)}
-.duo.m-period .gf img,.duo.m-period .gf video{border-color:var(--rose);box-shadow:0 0 0 6px var(--roseS)}
-.duo.m-period .gf{transform:scale(1.08)}
-.duo.m-period .bf{transform:translate(14px,10px) scale(.78) rotate(-14deg);animation:nunchi 2.6s ease-in-out infinite}
-.duo.m-period .bf img,.duo.m-period .bf video{filter:saturate(.75);border-color:var(--line)}
-.duo.m-pms .bf{transform:translate(8px,4px) scale(.9) rotate(-7deg);animation:nunchi 3.4s ease-in-out infinite}
+.duo.m-period .gf img,.duo.m-period .gf video{border-color:var(--rose)}
+.duo.m-period .bf img,.duo.m-period .bf video{border-color:var(--line)}
 .duo.m-pms .gf img,.duo.m-pms .gf video{border-color:var(--rose)}
-.duo.m-late .bf{transform:scale(.92) rotate(-5deg)}
-.duo.m-calm .gf{transform:rotate(-4deg) translateX(6px)}.duo.m-calm .bf{transform:rotate(4deg) translateX(-6px)}
 .duo.m-calm .gf img,.duo.m-calm .bf img,.duo.m-calm .gf video,.duo.m-calm .bf video{border-color:var(--lilS)}
-@keyframes nunchi{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:3px -2px}60%{translate:-3px 0}80%{translate:4px 1px}}
-@media (prefers-reduced-motion:reduce){.duo .bf{animation:none!important}}
 /* ── 걸어다니는 고양이 ── */
 .cat{position:absolute;left:0;top:0;width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .cat svg{width:100%;height:100%;overflow:visible;transition:transform .15s}
@@ -286,6 +279,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.19', d: '11/24', items: ['맨 위 두 사람 사진이 같은 크기로 고정돼요 (기울어짐·흔들림 없음)', '사진이 5초마다 자동으로 바뀌고, 누르면 바로 바뀌어요'] },
  { v: '1.18', d: '11/24', items: ['제작자 노트를 닫으면 캐릭터 위치가 어긋나 보이던 버그 수정', '커플 코드·알림 카드가 있든 없든 두 폰에서 캐릭터가 같은 자리에 보여요'] },
  { v: '1.17', d: '11/24', items: ['단계별 사진 칸에 움짤(GIF)과 영상도 넣을 수 있어요', '영상은 자동으로 작게(240px, 최대 6초, 소리 없이) 줄여서 반복 재생돼요'] },
  { v: '1.16', d: '11/24', items: ['설정 → 캐릭터 목록에서 캐릭터마다 "멈추기 / 걷게 하기" 버튼이 생겼어요', '"모두 멈추기 / 모두 걷게 하기" 버튼 추가', '기본 고양이도 멈추게 하거나 위치를 옮길 수 있어요 (상대 폰에도 똑같이)'] },
@@ -461,7 +455,7 @@ function renderSet(M) {
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
  const PSLOTS = [['default', '기본 (사진 없는 단계에 나옴)'], ['period', '생리 기간'], ['pms', '생리 전 (PMS)'], ['follicular', '생리 후 회복기'], ['fertile', '가임기'], ['ovu', '배란 예정일'], ['luteal', '배란 후'], ['late', '예정일 지남']];
  if (canPhoto()) {
-  h += `<p class="lbl" style="margin-top:14px">사진 (둘 다 넣고 바꿀 수 있어요)</p><p class="small" style="margin:0 0 6px">맨 위 왼쪽은 여자친구, 오른쪽은 남자친구 사진이에요. 단계마다 최대 5개, 사진·움짤·영상(6초까지 자동으로 줄여요) 다 돼요. 앱을 열 때마다 무작위로 나와요. 사진을 누르면 다른 사진으로 바뀌어요. 지우려면 아래 사진을 두 번 누르세요.</p>`;
+  h += `<p class="lbl" style="margin-top:14px">사진 (둘 다 넣고 바꿀 수 있어요)</p><p class="small" style="margin:0 0 6px">맨 위 왼쪽은 여자친구, 오른쪽은 남자친구 사진이에요. 단계마다 최대 5개, 사진·움짤·영상(6초까지 자동으로 줄여요) 다 돼요. 5초마다 무작위로 바뀌고, 사진을 누르면 바로 바뀌어요. 지우려면 아래 사진을 두 번 누르세요.</p>`;
   for (const [side, title] of [['gf', '👩 여자친구 사진 (왼쪽)'], ['bf', '👨 남자친구 사진 (오른쪽)']]) {
    h += `<details id="pd-${side}" style="padding:8px 0" ${openDet.has('pd-' + side) ? 'open' : ''}><summary>${title}</summary>` + PSLOTS.map(([k, l]) => { const ps = (S.photos[side] || {})[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*,video/*" multiple data-photo="${k}" data-side="${side}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="지우기" style="position:relative;padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden">${mediaThumb(x.data, 'width:100%;height:100%;object-fit:cover;pointer-events:none')}${isVid(x.data) ? '<span style="position:absolute;right:3px;bottom:2px;font-size:11px">▶</span>' : ''}</button>`).join('')}</div>` : ''}</div>`; }).join('') + `</details>`;
   }
@@ -742,7 +736,12 @@ document.addEventListener('change', e => {
  w(() => setDoc(devRef(), { notify, role: role() }, { merge: true }));
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
-document.addEventListener('click', e => { const id = e.target.id, sd = id.startsWith('faceGf') ? 'gf' : id.startsWith('faceBf') ? 'bf' : null; if (sd) { facePick(sd, M_().phase, true); renderDuo(M_()); } });
+let duoTimer = null;
+const duoNext = sides => { if (!S.couple) return; const M = M_(); for (const sd of sides) facePick(sd, M.phase, true); renderDuo(M); };
+const duoRestart = () => { clearInterval(duoTimer); duoTimer = setInterval(() => { if (document.visibilityState === 'visible' && !$('#duo').hidden) duoNext(['gf', 'bf']); }, 5000); };
+duoRestart();
+// 사진을 누르면 그 사진이 바로 바뀌고, 5초 타이머는 다시 시작해요
+document.addEventListener('click', e => { const id = e.target.id, sd = id.startsWith('faceGf') ? 'gf' : id.startsWith('faceBf') ? 'bf' : null; if (sd) { duoNext([sd]); duoRestart(); } });
 // 두 손가락 확대 막기 (아이폰)
 for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { faceSel = { gf: { key: '', id: '' }, bf: { key: '', id: '' } }; render(); if (S.pushState === 'on') pushInit(false); } });
