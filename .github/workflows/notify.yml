@@ -1,0 +1,35 @@
+name: 알림 보내기
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다 (GitHub 사정으로 조금 늦어질 수 있어요)
+  workflow_dispatch:          # Actions 탭에서 직접 실행해 볼 수도 있어요
+
+permissions:
+  contents: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: 알림 확인하고 보내기
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          APP_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: node scripts/notify.mjs
+      # 저장소에 60일 동안 변화가 없으면 GitHub가 자동 실행을 멈춰서, 45일마다 빈 기록을 남겨요
+      - name: 자동 실행 유지
+        run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( ($(date +%s) - last) / 86400 )) -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "keepalive"
+            git push
+          fi
