@@ -104,7 +104,7 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 @keyframes nunchi{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:3px -2px}60%{translate:-3px 0}80%{translate:4px 1px}}
 @media (prefers-reduced-motion:reduce){.duo .bf{animation:none!important}}
 /* ── 걸어다니는 고양이 ── */
-.cat{position:fixed;left:0;bottom:calc(env(safe-area-inset-bottom) + 4px);width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
+.cat{position:absolute;left:0;top:var(--cat-top,80vh);width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .cat svg{width:100%;height:100%;overflow:visible;transition:transform .15s}
 .cat.left svg{transform:scaleX(-1)}
 .cat .leg{transform-box:fill-box;transform-origin:50% 0}
@@ -275,6 +275,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.13', d: '11/24', items: ['캐릭터가 화면에 붙어 있지 않고 앱 화면 위를 걸어다녀서, 스크롤하면 같이 올라가요'] },
+ { v: '1.12', d: '11/24', items: ['캐릭터에 움짤(GIF)을 넣으면 움직이는 그대로 걸어다녀요 (650KB 이하)'] },
  { v: '1.11', d: '11/24', items: ['걸어다니는 캐릭터를 2개까지 넣을 수 있어요', '두 캐릭터가 마주치면 가끔 멈춰서 서로 애교를 부려요'] },
  { v: '1.10', d: '11/24', items: ['사진을 넣어도 사진 칸이 닫히지 않아서 계속 이어서 넣을 수 있어요', '고양이를 터치하면 도망가는 대신 애교를 부려요 (하트 뿅뿅, 웃는 눈, 꼬리 흔들기)', '걸어다니는 캐릭터를 원하는 그림으로 바꿀 수 있어요 (설정 → 사진)'] },
  { v: '1.9', d: '11/24', items: ['🐈 화면 아래를 걸어다니는 고양이 추가 (가끔 앉아서 쉬어요)', '고양이를 터치하면 반응해요', '설정에서 고양이 끄고 켜기 가능'] },
@@ -434,7 +436,7 @@ function renderSet(M) {
   for (const [side, title] of [['gf', '👩 여자친구 사진 (왼쪽)'], ['bf', '👨 남자친구 사진 (오른쪽)']]) {
    h += `<details id="pd-${side}" style="padding:8px 0" ${openDet.has('pd-' + side) ? 'open' : ''}><summary>${title}</summary>` + PSLOTS.map(([k, l]) => { const ps = (S.photos[side] || {})[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*" multiple data-photo="${k}" data-side="${side}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="사진 지우기" style="padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden"><img src="${esc(x.data)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>` : ''}</div>`; }).join('') + `</details>`;
   }
- h += `<p class="lbl" style="margin-top:12px">걸어다니는 캐릭터 (최대 2개)</p><p class="small" style="margin:0 0 4px">배경이 투명한 PNG가 가장 예뻐요. 그림이 없으면 고양이가 나와요. 둘이 마주치면 가끔 서로 애교를 부려요.</p>` + [['mascot', '캐릭터 1'], ['mascot2', '캐릭터 2']].map(([k, l]) => { const m = S.mascots[k]; return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">${m ? `<img src="${esc(m)}" alt="" style="width:44px;height:44px;object-fit:contain">` : `<span style="font-size:28px;width:44px;text-align:center">${k === 'mascot' ? '🐈' : '➕'}</span>`}<span style="flex:1">${l}</span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${m ? '바꾸기' : '그림 선택'}<input type="file" accept="image/*" data-mascot="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${m ? `<button class="btn ghost" data-act="delmascot" data-k="${k}" style="flex:none;min-height:40px;font-size:14px">빼기</button>` : ''}</div>`; }).join('');
+ h += `<p class="lbl" style="margin-top:12px">걸어다니는 캐릭터 (최대 2개)</p><p class="small" style="margin:0 0 4px"><b>움짤(GIF, 650KB 이하)</b>을 넣으면 움직이면서 걸어다녀요. 일반 사진은 배경이 투명한 PNG가 가장 예뻐요. 그림이 없으면 고양이가 나와요. 둘이 마주치면 가끔 서로 애교를 부려요.</p>` + [['mascot', '캐릭터 1'], ['mascot2', '캐릭터 2']].map(([k, l]) => { const m = S.mascots[k]; return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">${m ? `<img src="${esc(m)}" alt="" style="width:44px;height:44px;object-fit:contain">` : `<span style="font-size:28px;width:44px;text-align:center">${k === 'mascot' ? '🐈' : '➕'}</span>`}<span style="flex:1">${l}</span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${m ? '바꾸기' : '그림 선택'}<input type="file" accept="image/*" data-mascot="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${m ? `<button class="btn ghost" data-act="delmascot" data-k="${k}" style="flex:none;min-height:40px;font-size:14px">빼기</button>` : ''}</div>`; }).join('');
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
@@ -615,7 +617,14 @@ document.addEventListener('change', async e => {
   if (!canPhoto()) return toast('캐릭터 그림은 남자친구만 바꿀 수 있어요');
   if (!(await ensureOwner())) return;
   const mk = e.target.dataset.mascot === 'mascot2' ? 'mascot2' : 'mascot';
-  try { const data = await shrinkPng(e.target.files[0]); await setDoc(sub('photos', mk), { data, by: S.uid, updatedAt: Date.now() }); toast('캐릭터를 넣었어요'); }
+  const f = e.target.files[0], isGif = f.type === 'image/gif' || /\.gif$/i.test(f.name), big = f.size > 650000;
+  try {
+   let data;
+   if (isGif && !big) data = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }); // 움짤은 그대로 저장해서 계속 움직이게
+   else data = await shrinkPng(f);
+   await setDoc(sub('photos', mk), { data, by: S.uid, updatedAt: Date.now() });
+   toast(isGif ? (big ? '움짤이 커서(650KB 초과) 멈춘 그림으로 넣었어요' : '움짤 캐릭터를 넣었어요') : '캐릭터를 넣었어요');
+  }
   catch (err) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '그림을 읽지 못했어요. 다른 그림으로 해 주세요'); }
   e.target.value = ''; return;
  }
@@ -682,6 +691,10 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   const imgs = [S.mascots.mascot, S.mascots.mascot2].filter(Boolean);
   walkers.forEach((w, i) => { w.img = imgs[i] || ''; w.active = i === 0 || !!w.img; if (w.img) { if (w.im.getAttribute('src') !== w.img) w.im.src = w.img; } else w.im.removeAttribute('src'); setMode(w, w.mode, Math.max(0, w.until - performance.now())); });
  };
+ // 처음 열었을 때 화면 맨 아래 높이에 땅을 깔아요. 페이지에 붙어 있어서 스크롤하면 같이 올라가요.
+ const ground = () => { for (const w of walkers) { const h = w.img ? 76 : 52; w.el.style.setProperty('--cat-top', Math.max(120, innerHeight - h - 10) + 'px'); } };
+ ground(); addEventListener('orientationchange', () => setTimeout(ground, 300));
+ const _cr = window.catRefresh; window.catRefresh = () => { _cr(); ground(); };
  let last = performance.now();
  function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000), vw = innerWidth, on = catOn(); last = now;
