@@ -24,7 +24,7 @@
 [hidden]{display:none!important}
 html,body,button,input,textarea,a{touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,-apple-system,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 40px) max(18px,env(safe-area-inset-left))}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 96px) max(18px,env(safe-area-inset-left))}
 h1,h2,.big{font-family:"Gowun Dodum","Noto Sans KR",sans-serif;font-weight:400}
 h1{font-size:32px;line-height:1.05;margin:0}
 h2{font-size:21px;margin:0 0 12px}
@@ -85,6 +85,46 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .lbl{font-size:14px;font-weight:500;margin-top:6px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;z-index:9;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
+.duo{position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:10px;background:var(--card);border-radius:28px;padding:18px 18px 12px;margin-bottom:14px;overflow:hidden}
+.pp{position:relative;justify-self:center;transition:transform .4s ease}
+.pp img{display:block;width:min(130px,36vw);height:min(130px,36vw);border-radius:50%;object-fit:cover;border:4px solid var(--line);cursor:pointer;background:var(--line)}
+.pp img[src=""],.pp img:not([src]){visibility:hidden}
+.pp .tag{position:absolute;font-size:30px;line-height:1;pointer-events:none}
+.gf .tag{right:-6px;top:-6px}.bf .tag{left:-4px;top:-2px}
+.duocap{grid-column:1/-1;text-align:center;margin:6px 0 0;font-size:14px;color:var(--mute)}
+.duo.m-period .gf img{border-color:var(--rose);box-shadow:0 0 0 6px var(--roseS)}
+.duo.m-period .gf{transform:scale(1.08)}
+.duo.m-period .bf{transform:translate(14px,10px) scale(.78) rotate(-14deg);animation:nunchi 2.6s ease-in-out infinite}
+.duo.m-period .bf img{filter:saturate(.75);border-color:var(--line)}
+.duo.m-pms .bf{transform:translate(8px,4px) scale(.9) rotate(-7deg);animation:nunchi 3.4s ease-in-out infinite}
+.duo.m-pms .gf img{border-color:var(--rose)}
+.duo.m-late .bf{transform:scale(.92) rotate(-5deg)}
+.duo.m-calm .gf{transform:rotate(-4deg) translateX(6px)}.duo.m-calm .bf{transform:rotate(4deg) translateX(-6px)}
+.duo.m-calm .gf img,.duo.m-calm .bf img{border-color:var(--lilS)}
+@keyframes nunchi{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:3px -2px}60%{translate:-3px 0}80%{translate:4px 1px}}
+@media (prefers-reduced-motion:reduce){.duo .bf{animation:none!important}}
+/* ── 걸어다니는 고양이 ── */
+.cat{position:fixed;left:0;bottom:calc(env(safe-area-inset-bottom) + 4px);width:68px;height:52px;z-index:4;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
+.cat svg{width:100%;height:100%;overflow:visible;transition:transform .15s}
+.cat.left svg{transform:scaleX(-1)}
+.cat .leg{transform-box:fill-box;transform-origin:50% 0}
+.cat .tail{transform-box:fill-box;transform-origin:100% 100%;animation:wag 1.4s ease-in-out infinite alternate}
+.cat.walk .l1,.cat.walk .l4{animation:step .42s ease-in-out infinite alternate}
+.cat.walk .l2,.cat.walk .l3{animation:step .42s ease-in-out infinite alternate-reverse}
+.cat.walk .bod{animation:bob .42s ease-in-out infinite alternate}
+.cat.run .l1,.cat.run .l4{animation:step .12s linear infinite alternate}
+.cat.run .l2,.cat.run .l3{animation:step .12s linear infinite alternate-reverse}
+.cat.run .bod{animation:hop .24s ease-in-out infinite}
+.cat.run .tail{animation:none;transform:rotate(-35deg)}
+.cat.sit .tail{animation-duration:2.4s}
+.cat .eyeR{display:none}.cat.run .eye{display:none}.cat.run .eyeR{display:inline}
+.cat .bub{position:absolute;left:50%;top:-22px;transform:translateX(-50%);background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:1px 8px;font-size:13px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none}
+.cat.run .bub,.cat.sit .bub.zz{opacity:1}
+@keyframes step{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
+@keyframes wag{from{transform:rotate(-10deg)}to{transform:rotate(14deg)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
 @media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
@@ -123,7 +163,12 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   </div>
 
   <div id="app" hidden>
-    <div class="top" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h1>출혈디버프</h1><p class="sub" id="who"></p></div><img id="face" alt="" hidden style="cursor:pointer;width:84px;height:84px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--rose)"></div>
+    <div class="top"><h1>출혈디버프</h1><p class="sub" id="who"></p></div>
+    <div id="duo" class="duo" hidden>
+      <div class="pp gf"><img id="faceGf" alt="여자친구"><span class="tag" id="tagGf"></span></div>
+      <div class="pp bf"><img id="faceBf" alt="남자친구"><span class="tag" id="tagBf"></span></div>
+      <p class="duocap" id="duocap"></p>
+    </div>
     <div id="notecard"></div>
     <div id="codecard"></div>
     <div id="pushcard"></div>
@@ -143,6 +188,35 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   </div>
 </div>
 <div id="sh"><div class="shade" id="shade"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="cat" class="cat walk" hidden aria-label="고양이" role="img">
+  <span class="bub" id="catbub">히익!</span>
+  <svg viewBox="0 0 68 52" aria-hidden="true">
+    <ellipse cx="34" cy="49" rx="20" ry="2.5" fill="#000" opacity=".12"/>
+    <g class="bod">
+      <path class="tail" d="M16 28 C6 26 3 14 9 7" fill="none" stroke="#e8954a" stroke-width="5.5" stroke-linecap="round"/>
+      <rect class="leg l1" x="18" y="31" width="5.5" height="14" rx="2.7" fill="#e8954a"/>
+      <rect class="leg l2" x="25" y="31" width="5.5" height="14" rx="2.7" fill="#d9833a"/>
+      <rect class="leg l3" x="39" y="31" width="5.5" height="14" rx="2.7" fill="#d9833a"/>
+      <rect class="leg l4" x="45" y="31" width="5.5" height="14" rx="2.7" fill="#e8954a"/>
+      <ellipse cx="33" cy="29" rx="18" ry="10.5" fill="#f4a259"/>
+      <path d="M24 20 q2 6 0 11 M31 19 q2 7 0 12 M38 19.5 q2 6 0 11" stroke="#d9833a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="34" cy="33" rx="11" ry="5" fill="#fbe3c8"/>
+      <g>
+        <path d="M43 13 L45 2 L51 10 Z" fill="#f4a259"/><path d="M45 11 L46 5 L49 10 Z" fill="#f7b8c4"/>
+        <path d="M52 10 L58 2 L59 13 Z" fill="#f4a259"/><path d="M54 10 L57 5 L57.5 11 Z" fill="#f7b8c4"/>
+        <circle cx="51" cy="19" r="10.5" fill="#f4a259"/>
+        <path d="M46 10.5 q1 3 0 5 M51 9 v5" stroke="#d9833a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="55" cy="23" rx="5.5" ry="4" fill="#fbe3c8"/>
+        <g class="eye"><ellipse cx="49" cy="18.5" rx="1.6" ry="2.1" fill="#2b2230"/><ellipse cx="56" cy="18.5" rx="1.6" ry="2.1" fill="#2b2230"/></g>
+        <g class="eyeR" stroke="#2b2230" stroke-width="1.6" fill="none" stroke-linecap="round"><path d="M47.5 17 l2.5 1.6 -2.5 1.6"/><path d="M57.5 17 l-2.5 1.6 2.5 1.6"/></g>
+        <path d="M54.6 21.5 l1.4 1.2 1.4 -1.2 Z" fill="#e57a92"/>
+        <path d="M56 22.8 q-1 2 -2.4 1.4 M56 22.8 q1 2 2.4 1.4" stroke="#2b2230" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <circle cx="47" cy="22.5" r="1.8" fill="#f7a0b4" opacity=".7"/>
+        <path d="M60 21 l6 -1.5 M60 23 l6 .5 M50 22 l-6 -1.5 M50 23.5 l-6 .5" stroke="#8a6b55" stroke-width=".8" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>
+</div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -180,6 +254,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.9', d: '11/24', items: ['🐈 화면 아래를 걸어다니는 고양이 추가 (가끔 앉아서 쉬어요)', '고양이를 터치하면 깜짝 놀라 도망갔다가 잠시 후 돌아와요', '설정에서 고양이 끄고 켜기 가능'] },
+ { v: '1.8', d: '11/24', items: ['맨 위에 왼쪽 여자친구, 오른쪽 남자친구 사진이 함께 나와요', '생리 중엔 남자친구 사진이 작아지고 기울어져서 눈치 보며 흔들려요 💦', '사진 칸을 여자친구용·남자친구용으로 나눴어요', '사진은 남자친구만 넣고 지울 수 있어요'] },
  { v: '1.7.1', d: '11/24', items: ['사진이 안 올라갈 때 원인(권한·인터넷·사진 파일)을 정확히 알려줘요', '사진 읽는 방식을 보강했어요'] },
  { v: '1.7', d: '11/24', items: ['단계마다 사진을 최대 5장까지 넣을 수 있어요', '앱을 열 때마다 사진이 무작위로 바뀌고, 맨 위 사진을 누르면 다른 사진이 나와요', '사진 여러 장 한 번에 고르기 가능'] },
  { v: '1.6', d: '11/24', items: ['단계별 사진 추가: 설정에서 단계마다 사진을 고르면 맨 위 사진이 단계에 맞게 바뀌어요'] },
@@ -193,7 +269,7 @@ const NOTES = [
 const APP_VER = NOTES[0].v;
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
-const S = { photos: {}, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const S = { photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
@@ -236,8 +312,7 @@ function render() {
  const M = M_(), P = role() === 'partner', ph = PH[M.phase];
  $('#who').textContent = P ? '함께 보는 사람 화면' : '기록하는 사람 화면';
  renderPush();
- const face = $('#face'), fsrc = facePick(M.phase);
- if (fsrc) { if (face.getAttribute('src') !== fsrc) face.src = fsrc; face.style.borderColor = ph.c; face.hidden = false; } else face.hidden = true;
+ renderDuo(M);
  const nt = NOTES[0];
  $('#notecard').innerHTML = seenVer() === APP_VER ? '' : `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--lil)"><b>📝 제작자 노트 v${esc(nt.v)}</b><ul style="margin:6px 0 0;padding-left:20px;font-size:14px">${nt.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ghost" data-act="seenote" style="width:100%;margin-top:10px;min-height:44px">확인</button></div>`;
  const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid);
@@ -269,16 +344,33 @@ function render() {
 }
 
 // 단계별 사진 중 하나를 무작위로. 앱을 열 때마다 새로 고르고, 사진을 누르면 다른 사진으로 바뀌어요.
-let faceSel = { key: '', id: '' };
-function facePick(phase, reroll) {
- const list = (S.photos[phase] && S.photos[phase].length) ? S.photos[phase] : (S.photos.default || []), key = (S.photos[phase] && S.photos[phase].length) ? phase : 'default';
+let faceSel = { gf: { key: '', id: '' }, bf: { key: '', id: '' } };
+function facePick(side, phase, reroll) {
+ const P_ = S.photos[side] || {}, has = P_[phase] && P_[phase].length, list = has ? P_[phase] : (P_.default || []), key = has ? phase : 'default', sel = faceSel[side];
  if (!list.length) return '';
- let cur = list.find(x => x.id === faceSel.id);
- if (reroll || faceSel.key !== key || !cur) {
-  const pool = list.length > 1 ? list.filter(x => x.id !== faceSel.id) : list;
-  cur = pool[Math.floor(Math.random() * pool.length)]; faceSel = { key, id: cur.id };
+ let cur = list.find(x => x.id === sel.id);
+ if (reroll || sel.key !== key || !cur) {
+  const pool = list.length > 1 ? list.filter(x => x.id !== sel.id) : list;
+  cur = pool[Math.floor(Math.random() * pool.length)]; faceSel[side] = { key, id: cur.id };
  }
  return cur.data;
+}
+const MOOD = {
+ period: ['m-period', '😈', '💦', '생리 중… 눈치 보는 중'],
+ pms: ['m-pms', '😤', '😅', '생리 전… 조심조심'],
+ late: ['m-late', '🤔', '😟', '예정일이 지났어요'],
+ fertile: ['m-calm', '', '', '오늘도 사이좋게'], ovu: ['m-calm', '', '', '오늘도 사이좋게'],
+ follicular: ['m-calm', '', '', '평화로운 날'], luteal: ['m-calm', '', '', '평화로운 날'], none: ['m-calm', '', '', '']
+};
+function renderDuo(M) {
+ const g = facePick('gf', M.phase), b = facePick('bf', M.phase), duo = $('#duo');
+ if (!g && !b) { duo.hidden = true; return; }
+ duo.hidden = false;
+ const md = MOOD[M.phase] || MOOD.none;
+ duo.className = 'duo ' + md[0];
+ const set = (el, src) => { if (src) { if (el.getAttribute('src') !== src) el.src = src; } else el.removeAttribute('src'); };
+ set($('#faceGf'), g); set($('#faceBf'), b);
+ $('#tagGf').textContent = md[1]; $('#tagBf').textContent = md[2]; $('#duocap').textContent = md[3];
 }
 function renderCal(M) {
  const [y, mo] = S.month.split('-').map(Number), t = T();
@@ -295,6 +387,14 @@ function renderCal(M) {
  $('#calhint').textContent = role() === 'partner' ? '날짜를 누르면 그날의 기록을 볼 수 있어요.' : '날짜를 눌러 지난 생리 시작·종료일이나 그날의 몸 상태를 기록해요.';
 }
 
+const photoOwner = () => (S.couple && S.couple.photoOwner) || null;
+const ownerAlive = () => { const o = photoOwner(); return !!(o && S.couple.members && S.couple.members[o]); };
+const canPhoto = () => photoOwner() === S.uid || (!ownerAlive() && role() === 'partner');
+async function ensureOwner() {
+ if (photoOwner() === S.uid) return true;
+ try { await updateDoc(cRef(), { photoOwner: S.uid }); return true; }
+ catch (err) { console.error(err); toast('사진 권한을 설정하지 못했어요. Firebase 규칙을 확인해 주세요'); return false; }
+}
 function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
  let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
@@ -303,8 +403,16 @@ function renderSet(M) {
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
- const PSLOTS = [['default', '기본 (사진이 없는 단계)'], ['period', '생리 기간'], ['pms', '생리 전 (PMS)'], ['follicular', '생리 후 회복기'], ['fertile', '가임기'], ['ovu', '배란 예정일'], ['luteal', '배란 후'], ['late', '예정일 지남']];
- h += `<p class="lbl">단계별 사진 (단계마다 최대 5장)</p><p class="small" style="margin:0 0 6px">앱을 열 때마다 그 단계 사진 중 하나가 무작위로 나와요. 맨 위 사진을 누르면 다른 사진으로 바뀌어요. 사진이 없는 단계는 기본 사진이 나와요. 지우려면 사진을 두 번 누르세요.</p>` + PSLOTS.map(([k, l]) => { const ps = S.photos[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*" multiple data-photo="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="사진 지우기" style="padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden"><img src="${esc(x.data)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>` : ''}</div>`; }).join('');
+ const PSLOTS = [['default', '기본 (사진 없는 단계에 나옴)'], ['period', '생리 기간'], ['pms', '생리 전 (PMS)'], ['follicular', '생리 후 회복기'], ['fertile', '가임기'], ['ovu', '배란 예정일'], ['luteal', '배란 후'], ['late', '예정일 지남']];
+ if (canPhoto()) {
+  h += `<p class="lbl" style="margin-top:14px">사진 (남자친구만 넣을 수 있어요)</p><p class="small" style="margin:0 0 6px">맨 위 왼쪽은 여자친구, 오른쪽은 남자친구 사진이에요. 단계마다 최대 5장, 앱을 열 때마다 무작위로 나와요. 사진을 누르면 다른 사진으로 바뀌어요. 지우려면 아래 사진을 두 번 누르세요.</p>`;
+  for (const [side, title] of [['gf', '👩 여자친구 사진 (왼쪽)'], ['bf', '👨 남자친구 사진 (오른쪽)']]) {
+   h += `<details style="padding:8px 0"><summary>${title}</summary>` + PSLOTS.map(([k, l]) => { const ps = (S.photos[side] || {})[k] || []; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${l} <span class="small">${ps.length}/5</span></span>${ps.length < 5 ? `<label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">+ 추가<input type="file" accept="image/*" multiple data-photo="${k}" data-side="${side}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>${ps.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${ps.map(x => `<button data-act="delphoto" data-id="${esc(x.id)}" aria-label="사진 지우기" style="padding:0;border:0;background:none;width:52px;height:52px;border-radius:12px;overflow:hidden"><img src="${esc(x.data)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>` : ''}</div>`; }).join('') + `</details>`;
+  }
+ } else {
+  h += `<p class="small" style="margin-top:14px">📷 맨 위 사진은 남자친구만 넣고 바꿀 수 있어요.</p>`;
+ }
+ h += `<label class="row" style="margin-top:10px">🐈 걸어다니는 고양이<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
  $('#setbody').innerHTML = h;
@@ -377,7 +485,7 @@ function subscribe() {
  S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
- S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = {}; sn.docs.forEach(d => { const x = d.data(), k = d.id.split('-')[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[k] = o[k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const k in o) o[k].sort((a, b) => a.at - b.at); S.photos = o; if (S.got.size >= 3) render(); }, () => { }));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; sn.docs.forEach(d => { const x = d.data(), pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; if (S.got.size >= 3) render(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -425,7 +533,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
- if (a === 'delphoto') { const id = b.dataset.id; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); return; }
+ if (a === 'delphoto') { if (!canPhoto()) return toast('사진은 남자친구만 지울 수 있어요'); const id = b.dataset.id; if (delPhotoArm === id && !(await ensureOwner())) return; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); return; }
  if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
  if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
@@ -472,7 +580,10 @@ async function shrink(file) {
 document.addEventListener('change', async e => {
  const pk = e.target.dataset && e.target.dataset.photo;
  if (pk && e.target.files && e.target.files[0] && S.code) {
-  const used = new Set((S.photos[pk] || []).map(x => x.id)), free = [0, 1, 2, 3, 4].map(i => pk + '-' + i).filter(id => !used.has(id)).slice(0, Math.max(0, 5 - used.size));
+  const side = e.target.dataset.side === 'bf' ? 'bf' : 'gf', cur = (S.photos[side] || {})[pk] || [];
+  if (!canPhoto()) return toast('사진은 남자친구만 넣을 수 있어요');
+  if (!(await ensureOwner())) return;
+  const used = new Set(cur.map(x => x.id)), free = [0, 1, 2, 3, 4].map(i => `${side}-${pk}-${i}`).filter(id => !used.has(id)).slice(0, Math.max(0, 5 - used.size));
   const files = Array.from(e.target.files).slice(0, free.length);
   if (!files.length) return toast('이 단계는 사진이 5장 꽉 찼어요');
   if (e.target.files.length > files.length) toast(`5장까지라서 ${files.length}장만 올려요`); else toast('사진 올리는 중…');
@@ -489,18 +600,61 @@ document.addEventListener('change', async e => {
  }
 });
 document.addEventListener('change', e => {
+ if (e.target.id === 'cattoggle') { window.catToggle && window.catToggle(e.target.checked); return; }
  const k = e.target.dataset && e.target.dataset.n; if (!k || !S.code) return;
  const notify = { ...(S.device.notify || {}), [k]: e.target.checked };
  w(() => setDoc(devRef(), { notify, role: role() }, { merge: true }));
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
-document.addEventListener('click', e => { if (e.target.id === 'face') { const src = facePick(M_().phase, true); if (src) e.target.src = src; } });
+document.addEventListener('click', e => { const sd = e.target.id === 'faceGf' ? 'gf' : e.target.id === 'faceBf' ? 'bf' : null; if (sd) { const src = facePick(sd, M_().phase, true); if (src) e.target.src = src; } });
 // 두 손가락 확대 막기 (아이폰)
 for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { faceSel = { key: '', id: '' }; render(); if (S.pushState === 'on') pushInit(false); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { faceSel = { gf: { key: '', id: '' }, bf: { key: '', id: '' } }; render(); if (S.pushState === 'on') pushInit(false); } });
 
 // 앱을 열어 둔 상태에서 온 알림은 화면 안에 보여줘요
 isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.notification && p.notification.title) || '새 알림')); }).catch(() => { });
+
+// ── 걸어다니는 고양이 ──
+{
+ const cat = document.getElementById('cat'), bub = document.getElementById('catbub'), W = 68;
+ const catOn = () => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } };
+ let x = 40, dir = 1, mode = 'walk', until = 0, last = performance.now();
+ const SAY_RUN = ['히익!', '냥!?', '도망!', '앗 들켰다', '💨'], SAY_SIT = ['zZ', '…', '냐아', '꾹꾹'];
+ const setMode = (m, ms) => { mode = m; until = performance.now() + (ms || 0); cat.className = 'cat ' + (m === 'away' ? 'run' : m) + (dir < 0 ? ' left' : ''); };
+ const rand = (a, b) => a + Math.random() * (b - a);
+ function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const vw = window.innerWidth;
+  if (!catOn()) { cat.hidden = true; return requestAnimationFrame(frame); }
+  cat.hidden = false;
+  if (mode === 'walk') {
+   x += dir * 38 * dt;
+   if (x < 4) { x = 4; dir = 1; setMode('walk'); }
+   if (x > vw - W - 4) { x = vw - W - 4; dir = -1; setMode('walk'); }
+   if (now > until && Math.random() < dt * 0.12) { setMode('sit', rand(2500, 5000)); bub.textContent = SAY_SIT[Math.floor(Math.random() * SAY_SIT.length)]; bub.classList.toggle('zz', Math.random() < 0.5); }
+  } else if (mode === 'sit') {
+   if (now > until) { if (Math.random() < 0.4) dir = -dir; bub.classList.remove('zz'); setMode('walk', rand(4000, 9000)); }
+  } else if (mode === 'run') {
+   x += dir * 420 * dt;
+   if (x < -W - 20 || x > vw + 20) setMode('away', rand(3000, 7000));
+  } else if (mode === 'away') {
+   if (now > until) { dir = Math.random() < 0.5 ? 1 : -1; x = dir > 0 ? -W : vw; setMode('walk', rand(3000, 6000)); }
+  }
+  cat.style.transform = `translateX(${x.toFixed(1)}px)`;
+  requestAnimationFrame(frame);
+ }
+ cat.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  if (mode === 'run' || mode === 'away') return;
+  const vw = window.innerWidth; dir = (x + W / 2) < vw / 2 ? -1 : 1; // 가까운 쪽 화면 밖으로
+  bub.textContent = SAY_RUN[Math.floor(Math.random() * SAY_RUN.length)]; bub.classList.remove('zz');
+  setMode('run');
+  if (navigator.vibrate) try { navigator.vibrate(30); } catch (er) { }
+ });
+ window.catToggle = on => { try { localStorage.setItem('bd-cat', on ? 'on' : 'off'); } catch (e) { } };
+ x = rand(20, Math.max(40, window.innerWidth - 100)); setMode('walk', 3000);
+ requestAnimationFrame(frame);
+}
 
 // ── 시작 ──
 let booted = false;
