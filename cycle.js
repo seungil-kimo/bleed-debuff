@@ -5,6 +5,12 @@ export const add = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); retu
 export const diff = (a, b) => Math.round((pd(b) - pd(a)) / 864e5);
 export const isDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 export const clampN = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) && v >= lo && v <= hi ? Math.round(v) : d; };
+// ── 배란·가임기 설정 (다음 생리 예정일 기준으로 며칠 전인지) ──
+export const OV_FIRST = 15;   // 배란 예정일 첫날 = 예정일 15일 전
+export const OV_LAST = 14;    // 배란 예정일 둘째 날 = 예정일 14일 전
+export const FERT_BEFORE = 5; // 가임기 시작 = 배란 예정일 첫날 5일 전
+export const FERT_AFTER = 3;  // 가임기 끝 = 배란 예정일 둘째 날 3일 후
+
 const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
 
 // 한국 시간 기준 오늘 날짜 (서버는 UTC라서 따로 계산)
@@ -30,7 +36,10 @@ export function model(periods, settings = {}, t) {
     }
     for (let s = p.start; s <= end; s = add(s, 1)) mark(s, 'per');
   });
-  const fertMark = ns => { const ov = add(ns, -14); for (let i = -5; i <= 1; i++) mark(add(ov, i), i === 0 ? 'ovu' : 'fert'); };
+  const fertMark = ns => {
+    const o1 = add(ns, -OV_FIRST), o2 = add(ns, -OV_LAST);
+    for (let s = add(o1, -FERT_BEFORE); s <= add(o2, FERT_AFTER); s = add(s, 1)) mark(s, s >= o1 && s <= o2 ? 'ovu' : 'fert');
+  };
   for (let i = 1; i < ps.length; i++) fertMark(ps[i].start);
   let next = null;
   if (last) {
@@ -44,11 +53,11 @@ export function model(periods, settings = {}, t) {
   if (!last) return M;
   const inRec = ps.find(p => { const e = isDate(p.end) ? p.end : (p === last && ongoing ? t : add(p.start, len - 1)); return p.start <= t && t <= e; });
   M.day = diff(last.start, t) + 1;
-  const ov = add(next, -14); M.ov = ov; M.fs = add(ov, -5); M.fe = add(ov, 1);
+  M.ov = add(next, -OV_FIRST); M.ov2 = add(next, -OV_LAST); M.fs = add(M.ov, -FERT_BEFORE); M.fe = add(M.ov2, FERT_AFTER);
   M.dNext = diff(t, next);
   if (inRec) { M.phase = 'period'; M.dayN = diff(inRec.start, t) + 1; }
   else if (M.dNext < 0) { M.phase = 'late'; M.late = -M.dNext; }
-  else if (t === ov) M.phase = 'ovu';
+  else if (t >= M.ov && t <= M.ov2) M.phase = 'ovu';
   else if (t >= M.fs && t <= M.fe) M.phase = 'fertile';
   else if (t < M.fs) M.phase = 'follicular';
   else if (M.dNext <= 7) M.phase = 'pms';
@@ -72,6 +81,6 @@ export function events(M, t, role) {
   if (M.phase === 'late' && [1, 3, 7].includes(M.late))
     out.push({ kind: 'late', key: `late${M.late}-${M.next}`, title: `예정일보다 ${M.late}일 늦어지고 있어요`, body: '늦어질 수 있어요. 일주일 넘게 늦어지면 확인해 보세요.' });
   if (t === M.fs) out.push({ kind: 'fertile', key: 'fertile-' + M.fs, title: '오늘부터 가임기예요', body: `${kd(M.fs)} ~ ${kd(M.fe)} 예상` });
-  if (t === M.ov) out.push({ kind: 'ovu', key: 'ovu-' + M.ov, title: '오늘은 배란 예정일이에요', body: '예측 날짜예요.' });
+  if (t === M.ov) out.push({ kind: 'ovu', key: 'ovu-' + M.ov, title: '오늘부터 배란 예정일이에요', body: `${kd(M.ov)} ~ ${kd(M.ov2)} 예상 · 예측 날짜예요.` });
   return out;
 }
