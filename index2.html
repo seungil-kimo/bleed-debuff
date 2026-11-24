@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>출혈디버프</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="출혈디버프">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16111a" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#16111a);--ink:light-dark(#21182a,#f4eef6);--mute:light-dark(#6f6478,#b5a9bd);
+--line:light-dark(#efe7f1,#2f2635);--card:light-dark(#fbf7fc,#1f1825);
+--rose:light-dark(#df4169,#ff7396);--roseS:light-dark(#fde1e9,#4a1f30);
+--lil:light-dark(#7457d4,#ab93ff);--lilS:light-dark(#ece5fd,#2e2547)}
+*{box-sizing:border-box;min-width:0}
+html,body,button,input,textarea,a{touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,-apple-system,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 40px) max(18px,env(safe-area-inset-left))}
+h1,h2,.big{font-family:"Gowun Dodum","Noto Sans KR",sans-serif;font-weight:400}
+h1{font-size:32px;line-height:1.05;margin:0}
+h2{font-size:21px;margin:0 0 12px}
+.sub{color:var(--mute);font-size:14px;margin:4px 0 0}
+.top{margin-bottom:14px}
+section{margin-top:26px}
+.hero{background:var(--card);border-radius:28px;padding:22px 18px 20px;text-align:center}
+.ring{width:min(240px,70vw);height:min(240px,70vw);margin:0 auto;display:block}
+.chip{display:inline-block;padding:5px 12px;border-radius:99px;font-size:14px;font-weight:500;margin-top:12px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.facts div{font-size:13px;color:var(--mute)}.facts b{display:block;color:var(--ink);font-size:15px;font-weight:500;white-space:nowrap}
+.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{flex:1;min-height:50px;border:0;border-radius:16px;background:var(--rose);color:#fff;font-weight:700;font-size:16px;padding:0 16px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-weight:500}
+.btn.lil{background:var(--lil)}
+.btn:disabled{opacity:.5}
+.btn:focus-visible,.day:focus-visible,.pill:focus-visible{outline:3px solid var(--lil);outline-offset:2px}
+.note{background:var(--card);border-radius:18px;padding:14px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:8px}
+.note b{display:block;font-weight:500}.note span{font-size:14px;color:var(--mute)}
+.calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.nav{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:none;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.wd{font-size:12px;color:var(--mute);padding:4px 0}
+.day{position:relative;aspect-ratio:1;border:0;border-radius:50%;background:none;font-size:15px;display:flex;align-items:center;justify-content:center}
+.day.per{background:var(--rose);color:#fff;font-weight:700}
+.day.pred{box-shadow:inset 0 0 0 2px var(--rose);color:var(--rose)}
+.day.fert{background:var(--lilS)}
+.day.ovu{background:var(--lil);color:#fff;font-weight:700}
+.day.today::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--ink)}
+.day.log::before{content:"";position:absolute;bottom:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:currentColor;opacity:.7}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13px;color:var(--mute)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.phase{background:var(--card);border-radius:24px;padding:20px}
+.phase p{margin:0 0 12px}
+.phase h3{font-size:15px;margin:14px 0 6px;font-weight:700}
+.phase ul{margin:0;padding-left:20px}.phase li{margin:3px 0}
+.small{font-size:13px;color:var(--mute)}
+details{border-top:1px solid var(--line);padding:14px 0}
+summary{cursor:pointer;font-weight:500;min-height:30px}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
+input[type=number],input[type=text]{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+input[type=number]{width:84px;text-align:right}
+input[type=text]{width:100%;text-transform:uppercase;letter-spacing:.15em;text-align:center;font-size:22px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--rose)}
+textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.screen{min-height:75vh;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.screen .btn{flex:none;min-height:60px}
+.code{font-family:"Gowun Dodum",sans-serif;font-size:30px;letter-spacing:.12em;text-align:center;background:var(--card);border-radius:18px;padding:14px}
+.shade{position:fixed;inset:0;background:rgba(10,5,14,.45);display:none;z-index:5}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;background:var(--bg);border-radius:26px 26px 0 0;padding:20px max(18px,env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 24px);transform:translateY(105%);transition:transform .25s ease;z-index:6;max-width:560px;margin:0 auto}
+.open .shade{display:block}.open .sheet{transform:none}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.pill{min-height:40px;padding:0 14px;border-radius:99px;border:1.5px solid var(--line);background:none;font-size:15px}
+.pill[aria-pressed=true]{background:var(--rose);border-color:var(--rose);color:#fff}
+.seg{display:flex;gap:6px}.seg .pill{flex:1}
+.lbl{font-size:14px;font-weight:500;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;z-index:9;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+.load{padding:80px 0;text-align:center;color:var(--mute)}
+ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
+@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="load" class="load">불러오는 중…</div>
+
+  <div id="install" class="screen" hidden>
+    <h1>출혈디버프</h1>
+    <p class="sub">알림을 받으려면 먼저 홈 화면에 추가해서 열어야 해요.</p>
+    <div class="note"><div><ol class="howto">
+      <li>사파리 아래쪽 <b>공유 버튼</b>(네모에 위쪽 화살표)을 눌러요</li>
+      <li><b>홈 화면에 추가</b>를 눌러요</li>
+      <li>홈 화면에 생긴 <b>출혈디버프 아이콘</b>으로 다시 열어요</li>
+    </ol></div></div>
+    <p class="small">사파리에서 설정한 연결은 홈 화면 앱으로 옮겨지지 않아요. 꼭 홈 화면 아이콘으로 연 다음 시작해 주세요.</p>
+    <button class="btn ghost" data-act="skipinstall">그래도 여기서 볼래요</button>
+  </div>
+
+  <div id="setup" class="screen" hidden>
+    <h1>출혈디버프</h1>
+    <p class="sub" style="margin-bottom:10px">둘이 함께 보는 생리 주기 캘린더예요.</p>
+    <button class="btn" data-act="create">처음 시작해요 (기록하는 사람)</button>
+    <p class="small">기록하는 사람이 먼저 시작하면 커플 코드가 나와요. 그 코드를 상대에게 알려 주세요.</p>
+    <div style="margin-top:14px">
+      <p class="lbl">커플 코드로 연결하기</p>
+      <input type="text" id="joincode" maxlength="9" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters">
+      <div class="seg" style="margin:10px 0">
+        <button class="pill" data-jr="partner" aria-pressed="true">함께 보는 사람</button>
+        <button class="pill" data-jr="me" aria-pressed="false">기록하는 사람</button>
+      </div>
+      <button class="btn lil" data-act="join" style="width:100%">연결하기</button>
+    </div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top"><h1>출혈디버프</h1><p class="sub" id="who"></p></div>
+    <div id="notecard"></div>
+    <div id="codecard"></div>
+    <div id="pushcard"></div>
+    <div class="hero" id="hero"></div>
+    <section><h2>오늘의 알림</h2><div id="notes"></div></section>
+    <section>
+      <div class="calh"><button class="nav" id="prev" aria-label="이전 달">‹</button><h2 id="mt" style="margin:0"></h2><button class="nav" id="next" aria-label="다음 달">›</button></div>
+      <div class="grid" id="cal"></div>
+      <div class="legend"><span><i style="background:var(--rose)"></i>생리</span><span><i style="box-shadow:inset 0 0 0 2px var(--rose)"></i>생리 예정</span><span><i style="background:var(--lilS)"></i>가임기</span><span><i style="background:var(--lil)"></i>배란 예정</span></div>
+      <p class="small" id="calhint"></p>
+    </section>
+    <section><div class="phase" id="phase"></div></section>
+    <section>
+      <details><summary>설정</summary><div id="setbody"></div></details>
+      <p class="small">예측은 지난 기록의 평균으로 계산한 대략적인 날짜예요. 피임이나 임신 계획에 쓰지 말고, 몸이 걱정되면 산부인과에 물어보세요.</p>
+    </section>
+  </div>
+</div>
+<div id="sh"><div class="shade" id="shade"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js';
+import { model, events, add, diff, pd, fd, isDate, clampN, OV_FIRST, OV_LAST, FERT_BEFORE, FERT_AFTER } from './cycle.js';
+
+// ── Firebase 설정 ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDVm5EsM1kKLO3vhkTe9OVyRR2e5YtBVXw",
+  authDomain: "bleed-debuff.firebaseapp.com",
+  projectId: "bleed-debuff",
+  storageBucket: "bleed-debuff.firebasestorage.app",
+  messagingSenderId: "1013696072055",
+  appId: "1:1013696072055:web:bd56b24c4779bba96c7972"
+};
+const VAPID_KEY = "BKf9cBhHy7lIaS0WYGOyYTGiSMM_IewQewV8xwv5oTjuh83LhWXlOgDnfQp0fDC77YhqOtEuQCAiCzT6lTHV5TE";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app), db = getFirestore(app);
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const kd = s => { const d = pd(s); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`; };
+const sd = s => { const d = pd(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
+const T = () => fd(new Date());
+const show = id => { for (const x of ['load', 'install', 'setup', 'app']) $('#' + x).hidden = x !== id; };
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
+
+// ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
+const NOTES = [
+ { v: '1.3', d: '11/24', items: ['더블터치·두 손가락 확대 막기', '업데이트하면 맨 위에 제작자 노트가 떠요'] },
+ { v: '1.2', d: '11/24', items: ['가임기 10일로 늘림 (시작일은 해피문데이와 같게)', '배란 예정일 2일로 표시'] },
+ { v: '1.1', d: '11/24', items: ['상대가 연결하기 전까지 커플 코드를 맨 위에 보여줘요'] },
+ { v: '1.0', d: '11/24', items: ['출혈디버프 첫 버전'] }
+];
+const APP_VER = NOTES[0].v;
+const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
+
+const S = { uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
+
+const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
+const MOODS = ['좋음', '평온', '예민', '우울', '불안', '피곤'];
+const SYMS = ['두통', '복통', '허리 통증', '붓기', '여드름', '식욕 증가', '가슴 통증', '불면', '소화 불량'];
+
+const PH = {
+ none: { n: '첫 기록 전', c: 'var(--mute)', b: '생리가 시작한 날을 한 번 기록하면 다음 예정일과 가임기를 계산해요. 기록이 쌓일수록 예측이 내 주기에 맞춰져요.', care: ['기록하는 사람이 첫 기록을 남길 때까지 기다려 주세요.'], self: ['지난 생리 시작일이 기억나면 달력에서 그 날짜를 눌러 기록해요.'], gift: [] },
+ period: { n: '생리 기간', c: 'var(--rose)', b: '자궁이 수축하면서 아랫배·허리 통증, 피로, 두통이 올 수 있어요. 피가 빠져나가 쉽게 지치고 추위를 더 탈 수 있어요.', care: ['"괜찮아?" 하고 먼저 물어봐 주세요', '무리한 일정은 미루고 쉬는 데이트로', '배 따뜻하게, 찬 음식은 피하게 도와주기'], self: ['배와 허리를 따뜻하게 해요', '충분히 자고 물을 자주 마셔요', '통증이 심하면 진통제는 아프기 시작할 때 일찍 먹는 게 좋아요'], gift: ['핫팩·온열 찜질팩', '따뜻한 차 (생강차, 캐모마일)', '다크 초콜릿', '부드러운 담요나 수면 양말', '철분 많은 음식 같이 먹기 (소고기, 시금치)'] },
+ follicular: { n: '생리 후 회복기', c: 'var(--ink)', b: '생리가 끝나고 에스트로겐이 늘면서 몸이 가볍고 기분도 좋아지는 경우가 많아요.', care: ['활동적인 데이트하기 좋은 때예요', '새로운 곳 가보기, 같이 운동하기'], self: ['컨디션이 좋을 때 운동이나 미뤄둔 일을 해봐요'], gift: ['새 데이트 코스', '같이 산책·자전거', '가보고 싶다던 맛집'] },
+ fertile: { n: '가임기', c: 'var(--lil)', b: '배란 전후로 임신 가능성이 높은 시기예요. 컨디션이 좋은 사람도 있고, 배란통이나 분비물 변화를 느끼는 사람도 있어요.', care: ['한쪽 아랫배가 콕콕 아프다고 하면 배란통일 수 있어요', '이 앱의 날짜는 예측이라 피임 기준으로 쓰면 안 돼요'], self: ['배란통이 있으면 따뜻하게 쉬어요', '날짜는 예측이에요. 피임은 따로 꼭 챙겨요'], gift: ['좋아하는 꽃 한 송이', '함께 맛있는 저녁'] },
+ ovu: { n: '배란 예정일', c: 'var(--lil)', b: '다음 생리 예정일로부터 13~14일 전, 이틀을 배란 예정일로 잡아요. 실제 배란일은 사람과 달마다 다를 수 있어요.', care: ['배란통이나 컨디션 변화를 잘 들어주세요', '날짜는 예측이라 피임 기준이 아니에요'], self: ['몸 변화가 있으면 오늘 기록에 남겨두면 좋아요'], gift: ['좋아하는 꽃 한 송이', '함께 맛있는 저녁'] },
+ luteal: { n: '배란 후', c: 'var(--ink)', b: '프로게스테론이 늘면서 쉽게 피곤해지거나 식욕이 바뀔 수 있어요.', care: ['피곤하다고 하면 일정을 여유 있게', '편하게 쉴 수 있는 데이트'], self: ['잠을 충분히 자고 짠 음식은 조금 줄여봐요'], gift: ['좋아하는 간식', '같이 영화 보며 쉬기'] },
+ pms: { n: '생리 전 (PMS)', c: 'var(--rose)', b: '생리 1주일 전쯤부터 붓기, 예민함, 두통, 가슴 통증, 단 음식 당김이 올 수 있어요. 정도는 사람마다 많이 달라요.', care: ['예민해 보여도 "생리 때문이지?" 대신 먼저 들어주기', '약속은 여유 있게, 갑작스러운 계획은 피하기', '생리대·진통제 미리 챙겨두기'], self: ['카페인과 짠 음식을 줄이면 붓기에 도움이 돼요', '가벼운 스트레칭과 반신욕'], gift: ['좋아하는 디저트', '입욕제·족욕', '짧은 손편지', '생리대 미리 챙겨주기'] },
+ late: { n: '예정일 지남', c: 'var(--rose)', b: '스트레스, 피로, 체중 변화, 여행 같은 이유로 생리가 늦어질 수 있어요.', care: ['다그치지 말고 편하게 이야기 나누기', '일주일 넘게 늦어지면 테스트나 병원을 같이 고민해 보기'], self: ['일주일 넘게 늦어지거나 걱정되면 테스트기나 산부인과로 확인해요'], gift: ['따뜻한 차와 간식'] }
+};
+
+const M_ = () => model(S.periods, (S.couple && S.couple.settings) || {}, T());
+
+function ringSVG(M) {
+ const C = 2 * Math.PI * 92, cy = M.cycle, seg = (a, b, col) => `<circle cx="120" cy="120" r="92" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${Math.max(0, (b - a) / cy * C - 6)} ${C}" stroke-dashoffset="${-(a / cy * C + 3)}" transform="rotate(-90 120 120)"/>`;
+ let s = `<svg class="ring" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="92" fill="none" stroke="var(--line)" stroke-width="14"/>`;
+ if (M.last) {
+  s += seg(0, M.len, 'var(--rose)');
+  const o1 = cy - OV_FIRST, o2 = cy - OV_LAST; s += seg(o1 - FERT_BEFORE, o2 + FERT_AFTER + 1, 'var(--lilS)'); s += seg(o1, o2 + 1, 'var(--lil)');
+  const d = Math.min(Math.max(M.day, 1), cy), a = 2 * Math.PI * (d - .5) / cy - Math.PI / 2;
+  s += `<circle cx="${(120 + 92 * Math.cos(a)).toFixed(1)}" cy="${(120 + 92 * Math.sin(a)).toFixed(1)}" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>`;
+ }
+ let big = '—', lab = '첫 기록을 남겨주세요';
+ if (M.phase === 'period') { big = M.dayN + '일째'; lab = '생리 중'; }
+ else if (M.phase === 'late') { big = '+' + M.late + '일'; lab = '예정일이 지났어요'; }
+ else if (M.last) { big = M.dNext === 0 ? '오늘' : 'D-' + M.dNext; lab = M.dNext === 0 ? '생리 예정일' : '다음 생리까지'; }
+ return s + `<text x="120" y="122" text-anchor="middle" font-family="Gowun Dodum, sans-serif" font-size="40" fill="var(--ink)">${esc(big)}</text><text x="120" y="152" text-anchor="middle" font-size="14" fill="var(--mute)">${esc(lab)}</text></svg>`;
+}
+
+function renderPush() {
+ const st = S.pushState, el = $('#pushcard');
+ if (st === 'on' || st === 'unknown') { el.innerHTML = ''; return; }
+ const msg = {
+  ask: ['알림을 켜주세요', '생리 예정일, 시작, 가임기 알림을 받을 수 있어요.', '<button class="btn" data-act="push" style="margin-top:10px;width:100%">알림 켜기</button>'],
+  denied: ['알림이 꺼져 있어요', '아이폰 설정 → 알림 → 출혈디버프에서 알림을 허용해 주세요.', ''],
+  nosupport: ['여기서는 알림을 받을 수 없어요', isIOS ? '홈 화면에 추가한 출혈디버프 아이콘으로 열어야 해요 (iOS 16.4 이상).' : '이 브라우저는 웹 푸시를 지원하지 않아요.', ''],
+  error: ['알림 연결에 실패했어요', '잠시 후 다시 눌러 주세요.', '<button class="btn" data-act="push" style="margin-top:10px;width:100%">다시 시도</button>']
+ }[st];
+ el.innerHTML = `<div class="note" style="margin-bottom:14px"><span class="dot" style="background:var(--rose)"></span><div style="flex:1"><b>${msg[0]}</b><span>${msg[1]}</span>${msg[2]}</div></div>`;
+}
+
+function render() {
+ if (!S.couple) return;
+ show('app');
+ const M = M_(), P = role() === 'partner', ph = PH[M.phase];
+ $('#who').textContent = P ? '함께 보는 사람 화면' : '기록하는 사람 화면';
+ renderPush();
+ const nt = NOTES[0];
+ $('#notecard').innerHTML = seenVer() === APP_VER ? '' : `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--lil)"><b>📝 제작자 노트 v${esc(nt.v)}</b><ul style="margin:6px 0 0;padding-left:20px;font-size:14px">${nt.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ghost" data-act="seenote" style="width:100%;margin-top:10px;min-height:44px">확인</button></div>`;
+ const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid);
+ $('#codecard').innerHTML = other ? '' : `<div class="note" style="margin-bottom:14px;display:block"><b>상대와 연결해 주세요</b><span>상대 폰의 출혈디버프에서 이 커플 코드를 입력하면 연결돼요.</span><div class="code" style="margin-top:10px">${esc(fmtCode(S.code))}</div><button class="btn ghost" data-act="copycode" style="width:100%;margin-top:8px">코드 복사</button></div>`;
+ let h = ringSVG(M) + `<span class="chip" style="background:var(--card);border:1.5px solid ${ph.c};color:${ph.c}">${esc(ph.n)}</span>`;
+ if (M.last) h += `<div class="facts"><div>다음 생리<b>${esc(sd(M.next))}</b></div><div>가임기<b>${esc(sd(M.fs))}~${esc(sd(M.fe))}</b></div><div>평균 주기<b>${M.cycle}일</b></div></div>`;
+ if (!P) h += `<div class="acts">${M.ongoing ? `<button class="btn" data-act="end">오늘 생리 끝났어요</button>` : `<button class="btn" data-act="start">오늘 생리 시작했어요</button>`}<button class="btn ghost" data-act="today">오늘 기록</button></div>`;
+ $('#hero').innerHTML = h;
+ const nf = S.device.notify || {}, ns = events(M, T(), role()).filter(e => nf[e.kind] !== false);
+ $('#notes').innerHTML = ns.length ? ns.map(e => `<div class="note"><span class="dot" style="background:${e.kind === 'fertile' || e.kind === 'ovu' ? 'var(--lil)' : 'var(--rose)'}"></span><div><b>${esc(e.title)}</b><span>${esc(e.body)}</span></div></div>`).join('') : `<div class="note"><span class="dot" style="background:var(--line)"></span><div><b>오늘은 특별한 알림이 없어요</b><span>${M.last ? '다음 생리 예정 ' + esc(kd(M.next)) : '첫 기록이 생기면 알려드릴게요.'}</span></div></div>`;
+ renderCal(M);
+ const list = P ? ph.care : ph.self;
+ $('#phase').innerHTML = `<h2>${esc(ph.n)}${M.last && M.phase !== 'late' ? ` <span class="small">· 주기 ${Math.min(M.day, M.cycle)}일째</span>` : ''}</h2><p>${esc(ph.b)}</p><h3>${P ? '이렇게 챙겨주세요' : '나를 위한 팁'}</h3><ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${ph.gift.length ? `<h3>${P ? '이런 선물 어때요' : '있으면 좋은 것'}</h3><ul>${ph.gift.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}`;
+ renderSet(M);
+}
+
+function renderCal(M) {
+ const [y, mo] = S.month.split('-').map(Number), t = T();
+ $('#mt').textContent = `${y}년 ${mo}월`;
+ const sw = new Date(y, mo - 1, 1, 12).getDay(), days = new Date(y, mo, 0).getDate();
+ let h = '일월화수목금토'.split('').map(w => `<div class="wd">${w}</div>`).join('');
+ for (let i = 0; i < sw; i++) h += '<div></div>';
+ for (let d = 1; d <= days; d++) {
+  const s = fd(new Date(y, mo - 1, d, 12)), k = M.map[s], cls = ['day'];
+  if (k) cls.push(k); if (s === t) cls.push('today'); if (S.logs[s]) cls.push('log');
+  h += `<button class="${cls.join(' ')}" data-d="${s}" aria-label="${esc(kd(s))}">${d}</button>`;
+ }
+ $('#cal').innerHTML = h;
+ $('#calhint').textContent = role() === 'partner' ? '날짜를 누르면 그날의 기록을 볼 수 있어요.' : '날짜를 눌러 지난 생리 시작·종료일이나 그날의 몸 상태를 기록해요.';
+}
+
+function renderSet(M) {
+ const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
+ let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
+ h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
+ h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
+ h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
+ if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
+ h += `<p class="small">지금까지 생리 기록 ${M.count}번 · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
+ h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
+ h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
+ $('#setbody').innerHTML = h;
+}
+
+let F = null, delArm = false, leaveArm = false;
+function openDay(s) {
+ const M = M_(), P = role() === 'partner', L = S.logs[s] || {}, k = M.map[s], t = T();
+ F = { flow: L.flow ?? null, pain: L.pain ?? null, mood: Array.isArray(L.mood) ? L.mood.filter(x => MOODS.includes(x)) : [], sym: Array.isArray(L.sym) ? L.sym.filter(x => SYMS.includes(x)) : [], memo: typeof L.memo === 'string' ? L.memo : '' };
+ delArm = false;
+ const st = { per: '생리', pred: '생리 예정', fert: '가임기', ovu: '배란 예정일 (가임기)' }[k] || '';
+ let h = `<h2 style="margin-bottom:2px">${esc(kd(s))}</h2><p class="sub" style="margin-bottom:14px">${esc(st || '기록 없음')}</p>`;
+ if (P) {
+  h += S.logs[s] ? `${F.flow != null ? `<p>양: <b>${FLOW[F.flow] || ''}</b></p>` : ''}${F.pain != null ? `<p>생리통: <b>${PAIN[F.pain] || ''}</b></p>` : ''}${F.mood.length ? `<p>기분: ${esc(F.mood.join(', '))}</p>` : ''}${F.sym.length ? `<p>증상: ${esc(F.sym.join(', '))}</p>` : ''}${F.memo ? `<p class="small">${esc(F.memo)}</p>` : ''}` : '<p class="small">이 날 남긴 기록이 없어요.</p>';
+  h += `<button class="btn ghost" data-act="close" style="width:100%;margin-top:10px">닫기</button>`;
+ } else {
+  const startHere = M.ps.find(p => p.start === s), open = M.ps.filter(p => p.start < s && diff(p.start, s) < 15).pop();
+  h += '<div class="acts" style="margin-top:0">';
+  if (s > t) h += '<p class="small">미래 날짜는 기록할 수 없어요.</p>';
+  else {
+   if (!startHere && k !== 'per') h += `<button class="btn" data-act="startd">이 날 생리 시작</button>`;
+   if (open && open.end !== s) h += `<button class="btn ghost" data-act="endd">이 날 생리 끝</button>`;
+   if (startHere) h += `<button class="btn ghost" data-act="del">이 생리 기록 지우기</button>`;
+  }
+  h += '</div>';
+  if (s <= t) {
+   const pills = (name, arr, multi) => `<div class="pills">${arr.map((x, i) => { const v = multi ? x : i, on = multi ? F[name].includes(x) : F[name] === i; return `<button class="pill" data-f="${name}" data-v="${esc(v)}" aria-pressed="${on}">${esc(x)}</button>`; }).join('')}</div>`;
+   h += `<p class="lbl">생리 양</p>${pills('flow', FLOW)}<p class="lbl">생리통</p>${pills('pain', PAIN)}<p class="lbl">기분</p>${pills('mood', MOODS, 1)}<p class="lbl">증상</p>${pills('sym', SYMS, 1)}<p class="lbl">메모</p><textarea id="memo" maxlength="500" placeholder="오늘 몸이나 마음은 어땠나요?"></textarea><p class="small">기록은 함께 보는 사람에게도 보여요.</p><div class="acts"><button class="btn" data-act="savelog">저장</button><button class="btn ghost" data-act="close">닫기</button></div>`;
+  } else h += `<button class="btn ghost" data-act="close" style="width:100%;margin-top:10px">닫기</button>`;
+ }
+ const sh = $('#sheet'); sh.innerHTML = h; sh.dataset.d = s;
+ const m = $('#memo'); if (m) m.value = F.memo;
+ $('#sh').classList.add('open');
+}
+const closeSheet = () => $('#sh').classList.remove('open');
+
+let tt; function toast(m) { const e = $('#toast'); e.textContent = m; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); }
+async function w(fn, ok) { try { await fn(); if (ok) toast(ok); return true; } catch (e) { console.error(e); toast('저장하지 못했어요. 인터넷 연결을 확인해 주세요.'); return false; } }
+
+const cRef = () => doc(db, 'couples', S.code);
+const sub = (...p) => doc(db, 'couples', S.code, ...p);
+const devRef = () => doc(db, 'couples', S.code, 'devices', S.uid);
+
+// ── 푸시 알림 ──
+let swReg = null;
+async function pushInit(ask) {
+ try {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !(await isSupported())) { S.pushState = 'nosupport'; return renderPush(); }
+  if (Notification.permission === 'denied') { S.pushState = 'denied'; return render(); }
+  if (Notification.permission !== 'granted') {
+   if (!ask) { S.pushState = 'ask'; return render(); }
+   const p = await Notification.requestPermission();
+   if (p !== 'granted') { S.pushState = p === 'denied' ? 'denied' : 'ask'; return render(); }
+  }
+  swReg = swReg || await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
+  await navigator.serviceWorker.ready;
+  const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+  if (token && token !== S.device.token) await setDoc(devRef(), { token, role: role(), updatedAt: Date.now() }, { merge: true });
+  S.pushState = 'on'; render();
+  if (ask) toast('알림을 켰어요');
+ } catch (e) { console.error(e); S.pushState = 'error'; render(); }
+}
+
+// ── 연결 ──
+function subscribe() {
+ S.unsub.forEach(u => u()); S.unsub = []; S.got.clear();
+ let first = true;
+ const ready = k => { S.got.add(k); if (S.got.size >= 3) { render(); if (first) { first = false; pushInit(false); } } };
+ const fail = e => { console.error(e); if (e.code === 'permission-denied') { leaveLocal(); } };
+ S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); }, fail));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
+ S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
+}
+async function enter(code) {
+ S.code = code;
+ try { await setDoc(doc(db, 'users', S.uid), { code }, { merge: true }); } catch (e) { console.error(e); }
+ subscribe();
+}
+async function leaveLocal() {
+ S.unsub.forEach(u => u()); S.unsub = []; S.couple = null; S.code = null;
+ try { await deleteDoc(doc(db, 'users', S.uid)); } catch (e) { }
+ show('setup');
+}
+
+async function createCouple() {
+ const r = new Uint32Array(8); crypto.getRandomValues(r);
+ const code = Array.from(r, n => CODE_CH[n % CODE_CH.length]).join('');
+ const ok = await w(() => setDoc(doc(db, 'couples', code), { members: { [S.uid]: 'me' }, settings: { cycle: 28, length: 5 }, createdAt: Date.now() }));
+ if (ok) { await enter(code); toast('시작했어요! 설정에서 커플 코드를 확인하세요'); }
+}
+async function joinCouple() {
+ const code = ($('#joincode').value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+ if (code.length !== 8) return toast('코드 8자리를 입력해 주세요');
+ try {
+  await updateDoc(doc(db, 'couples', code), { ['members.' + S.uid]: S.joinRole });
+  await enter(code); toast('연결됐어요');
+ } catch (e) { console.error(e); toast(e.code === 'not-found' || e.code === 'permission-denied' ? '코드가 맞지 않거나 이미 두 명이 연결돼 있어요' : '연결하지 못했어요. 다시 시도해 주세요'); }
+}
+
+// ── 이벤트 ──
+document.addEventListener('click', async e => {
+ const b = e.target.closest('button,#shade'); if (!b) return;
+ if (b.id === 'shade') return closeSheet();
+ if (b.dataset.jr) { S.joinRole = b.dataset.jr; document.querySelectorAll('[data-jr]').forEach(x => x.setAttribute('aria-pressed', x.dataset.jr === S.joinRole)); return; }
+ if (b.dataset.d && !b.dataset.f) return openDay(b.dataset.d);
+ if (b.dataset.f) {
+  const f = b.dataset.f, v = b.dataset.v;
+  if (f === 'mood' || f === 'sym') { F[f] = F[f].includes(v) ? F[f].filter(x => x !== v) : [...F[f], v]; b.setAttribute('aria-pressed', F[f].includes(v)); }
+  else { const n = Number(v); F[f] = F[f] === n ? null : n; b.parentNode.querySelectorAll('.pill').forEach(p => p.setAttribute('aria-pressed', F[f] !== null && Number(p.dataset.v) === F[f])); }
+  return;
+ }
+ if (b.id === 'prev' || b.id === 'next') { const [y, m] = S.month.split('-').map(Number), d = new Date(y, m - 1 + (b.id === 'prev' ? -1 : 1), 1, 12); S.month = fd(d).slice(0, 7); renderCal(M_()); return; }
+ const a = b.dataset.act; if (!a) return;
+ const t = T(), s = $('#sheet').dataset.d;
+ if (a === 'skipinstall') return boot(true);
+ if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
+ if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
+ if (a === 'push') return pushInit(true);
+ if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
+ if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
+ const M = M_();
+ if (a === 'close') closeSheet();
+ if (a === 'role') { const nr = role() === 'partner' ? 'me' : 'partner'; await w(() => updateDoc(cRef(), { ['members.' + S.uid]: nr })); if (S.device.token) w(() => setDoc(devRef(), { role: nr }, { merge: true })); }
+ if (a === 'start') await w(() => setDoc(sub('periods', t), { start: t, end: null, createdAt: Date.now(), by: S.uid }), '생리 시작을 기록했어요');
+ if (a === 'end' && M.last) await w(() => updateDoc(sub('periods', M.last.start), { end: t }), '생리 끝을 기록했어요');
+ if (a === 'today') openDay(t);
+ if (a === 'startd') { closeSheet(); await w(() => setDoc(sub('periods', s), { start: s, end: null, createdAt: Date.now(), by: S.uid }), '생리 시작을 기록했어요'); }
+ if (a === 'endd') { const o = M.ps.filter(p => p.start < s && diff(p.start, s) < 15).pop(); if (o) { closeSheet(); await w(() => updateDoc(sub('periods', o.start), { end: s }), '생리 끝을 기록했어요'); } }
+ if (a === 'del') { if (!delArm) { delArm = true; b.textContent = '한 번 더 누르면 지워져요'; return; } closeSheet(); await w(() => deleteDoc(sub('periods', s)), '기록을 지웠어요'); }
+ if (a === 'savelog') {
+  F.memo = ($('#memo').value || '').slice(0, 500);
+  const empty = F.flow == null && F.pain == null && !F.mood.length && !F.sym.length && !F.memo.trim();
+  closeSheet();
+  await w(() => empty ? deleteDoc(sub('logs', s)) : setDoc(sub('logs', s), { date: s, ...F }), '저장했어요');
+ }
+ if (a === 'saveset') { const c = clampN($('#cy').value, 21, 45, 28), l = clampN($('#ln').value, 2, 10, 5); await w(() => updateDoc(cRef(), { settings: { cycle: c, length: l } }), '기본값을 저장했어요'); }
+ if (a === 'kick') { const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid); if (other) { await w(() => updateDoc(cRef(), { ['members.' + other]: deleteField() }), '상대 연결을 끊었어요'); w(() => deleteDoc(sub('devices', other))); } }
+ if (a === 'leave') {
+  if (!leaveArm) { leaveArm = true; b.textContent = '한 번 더 누르면 해제돼요'; return; }
+  leaveArm = false;
+  try { await deleteDoc(devRef()); } catch (e) { }
+  await w(() => updateDoc(cRef(), { ['members.' + S.uid]: deleteField() }), '이 폰의 연결을 해제했어요');
+  leaveLocal();
+ }
+});
+document.addEventListener('change', e => {
+ const k = e.target.dataset && e.target.dataset.n; if (!k || !S.code) return;
+ const notify = { ...(S.device.notify || {}), [k]: e.target.checked };
+ w(() => setDoc(devRef(), { notify, role: role() }, { merge: true }));
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+// 두 손가락 확대 막기 (아이폰)
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { render(); if (S.pushState === 'on') pushInit(false); } });
+
+// 앱을 열어 둔 상태에서 온 알림은 화면 안에 보여줘요
+isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.notification && p.notification.title) || '새 알림')); }).catch(() => { });
+
+// ── 시작 ──
+let booted = false;
+function boot(skip) {
+ if (isIOS && !standalone && !skip) return show('install');
+ show('load');
+ if (booted) return; booted = true;
+ onAuthStateChanged(auth, async u => {
+  if (!u) { try { await signInAnonymously(auth); } catch (e) { console.error(e); $('#load').textContent = '연결하지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.'; } return; }
+  if (S.uid === u.uid) return;
+  S.uid = u.uid;
+  try {
+   const us = await getDoc(doc(db, 'users', u.uid));
+   const code = us.exists() && us.data().code;
+   if (code) return enter(code);
+  } catch (e) { console.error(e); }
+  show('setup');
+ });
+}
+boot(false);
+</script>
+</body>
+</html>
