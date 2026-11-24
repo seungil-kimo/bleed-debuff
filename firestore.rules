@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isMember(code) {
+      return signedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/couples/$(code)).data.members;
+    }
+
+    // 각 폰이 자기 커플 코드를 기억하는 곳 (본인만)
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /couples/{code} {
+      // 기록하는 사람이 새로 시작할 때: 본인만 들어간 상태로 만들기
+      allow create: if signedIn() && code.size() == 8
+        && request.resource.data.members.keys().hasOnly([request.auth.uid]);
+      // 연결된 사람만 읽기
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      // 연결된 사람은 수정 가능 / 처음 연결하는 사람은 자기 자신만 추가 가능 (최대 2명)
+      allow update: if signedIn() && (
+        request.auth.uid in resource.data.members
+        || (resource.data.members.size() < 2
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+            && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([request.auth.uid])
+            && request.auth.uid in request.resource.data.members)
+      );
+
+      // 생리 기록, 하루 기록, 알림 설정: 연결된 두 사람만
+      match /periods/{id} { allow read, write: if isMember(code); }
+      match /logs/{id} { allow read, write: if isMember(code); }
+      match /devices/{id} { allow read, write: if isMember(code); }
+      // 보낸 알림 기록은 서버만 씀
+      match /sent/{id} { allow read: if isMember(code); }
+    }
+  }
+}
