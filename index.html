@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>출혈디버프</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -21,6 +21,8 @@
 --rose:light-dark(#df4169,#ff7396);--roseS:light-dark(#fde1e9,#4a1f30);
 --lil:light-dark(#7457d4,#ab93ff);--lilS:light-dark(#ece5fd,#2e2547)}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body,button,input,textarea,a{touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,-apple-system,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 40px) max(18px,env(safe-area-inset-left))}
 h1,h2,.big{font-family:"Gowun Dodum","Noto Sans KR",sans-serif;font-weight:400}
@@ -122,6 +124,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
 
   <div id="app" hidden>
     <div class="top"><h1>출혈디버프</h1><p class="sub" id="who"></p></div>
+    <div id="notecard"></div>
     <div id="codecard"></div>
     <div id="pushcard"></div>
     <div class="hero" id="hero"></div>
@@ -173,6 +176,17 @@ const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platfo
 const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
 const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
+
+// ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
+const NOTES = [
+ { v: '1.4', d: '11/24', items: ['안내 화면과 시작 화면이 겹쳐 보이던 문제 수정'] },
+ { v: '1.3', d: '11/24', items: ['더블터치·두 손가락 확대 막기', '업데이트하면 맨 위에 제작자 노트가 떠요'] },
+ { v: '1.2', d: '11/24', items: ['가임기 10일로 늘림 (시작일은 해피문데이와 같게)', '배란 예정일 2일로 표시'] },
+ { v: '1.1', d: '11/24', items: ['상대가 연결하기 전까지 커플 코드를 맨 위에 보여줘요'] },
+ { v: '1.0', d: '11/24', items: ['출혈디버프 첫 버전'] }
+];
+const APP_VER = NOTES[0].v;
+const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
 const S = { uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
@@ -228,6 +242,8 @@ function render() {
  const M = M_(), P = role() === 'partner', ph = PH[M.phase];
  $('#who').textContent = P ? '함께 보는 사람 화면' : '기록하는 사람 화면';
  renderPush();
+ const nt = NOTES[0];
+ $('#notecard').innerHTML = seenVer() === APP_VER ? '' : `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--lil)"><b>📝 제작자 노트 v${esc(nt.v)}</b><ul style="margin:6px 0 0;padding-left:20px;font-size:14px">${nt.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ghost" data-act="seenote" style="width:100%;margin-top:10px;min-height:44px">확인</button></div>`;
  const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid);
  $('#codecard').innerHTML = other ? '' : `<div class="note" style="margin-bottom:14px;display:block"><b>상대와 연결해 주세요</b><span>상대 폰의 출혈디버프에서 이 커플 코드를 입력하면 연결돼요.</span><div class="code" style="margin-top:10px">${esc(fmtCode(S.code))}</div><button class="btn ghost" data-act="copycode" style="width:100%;margin-top:8px">코드 복사</button></div>`;
  let h = ringSVG(M) + `<span class="chip" style="background:var(--card);border:1.5px solid ${ph.c};color:${ph.c}">${esc(ph.n)}</span>`;
@@ -265,6 +281,7 @@ function renderSet(M) {
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
+ h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
  $('#setbody').innerHTML = h;
 }
@@ -383,6 +400,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
+ if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
  if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
  const M = M_();
  if (a === 'close') closeSheet();
@@ -415,6 +433,8 @@ document.addEventListener('change', e => {
  w(() => setDoc(devRef(), { notify, role: role() }, { merge: true }));
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+// 두 손가락 확대 막기 (아이폰)
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.code) { render(); if (S.pushState === 'on') pushInit(false); } });
 
 // 앱을 열어 둔 상태에서 온 알림은 화면 안에 보여줘요
