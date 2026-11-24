@@ -284,6 +284,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.16', d: '11/24', items: ['설정 → 캐릭터 목록에서 캐릭터마다 "멈추기 / 걷게 하기" 버튼이 생겼어요', '"모두 멈추기 / 모두 걷게 하기" 버튼 추가', '기본 고양이도 멈추게 하거나 위치를 옮길 수 있어요 (상대 폰에도 똑같이)'] },
  { v: '1.15', d: '11/24', items: ['여자친구도 사진과 캐릭터를 넣고 뺄 수 있어요 (둘 다 똑같은 권한)'] },
  { v: '1.14', d: '11/24', items: ['캐릭터를 원하는 만큼 넣을 수 있어요 (움짤도 가능)', '캐릭터마다 걷기/멈춤을 정할 수 있어요', '✏️ 편집 모드에서 캐릭터를 끌어서 원하는 자리에 둘 수 있어요', '위치와 걷기/멈춤은 둘 다 바꿀 수 있고, 바꾸면 상대 폰에도 바로 같은 자리에 떠요'] },
  { v: '1.13', d: '11/24', items: ['캐릭터가 화면에 붙어 있지 않고 앱 화면 위를 걸어다녀서, 스크롤하면 같이 올라가요'] },
@@ -451,7 +452,7 @@ function renderSet(M) {
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
- h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p><div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 캐릭터 편집하기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>`;
+ h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.mode === 'still' ? '⏸ 멈춰 있어요' : '🚶 걸어다녀요'}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div>`;
  h += `<label class="row" style="margin-top:10px">🐈 캐릭터 보이기<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
@@ -522,11 +523,11 @@ function subscribe() {
  let first = true;
  const ready = k => { S.got.add(k); if (S.got.size >= 3) { render(); if (first) { first = false; pushInit(false); } } };
  const fail = e => { console.error(e); if (e.code === 'permission-denied') { leaveLocal(); } };
- S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); }, fail));
+ S.unsub.push(onSnapshot(cRef(), sn => { if (!sn.exists() || !(sn.data().members || {})[S.uid]) return leaveLocal(); S.couple = sn.data(); ready('c'); window.charSync && window.charSync(); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'periods'), sn => { S.periods = sn.docs.map(d => { const x = d.data(); return { start: x.start, end: x.end }; }); ready('p'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { const o = { gf: {}, bf: {} }; S.mascots = {}; sn.docs.forEach(d => { const x = d.data(); if (d.id === 'mascot' || d.id === 'mascot2') { if (typeof x.data === 'string' && x.data.startsWith('data:image/')) S.mascots[d.id] = x.data; return; } const pr = d.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0]; if (typeof x.data === 'string' && x.data.startsWith('data:image/')) (o[side][k] = o[side][k] || []).push({ id: d.id, data: x.data, at: x.updatedAt || 0 }); }); for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at); S.photos = o; tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
- S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.chars = sn.docs.map(d => { const x = d.data(); return { id: d.id, data: typeof x.data === 'string' && x.data.startsWith('data:image/') ? x.data : '', x: Number.isFinite(x.x) ? x.x : 0.5, y: Number.isFinite(x.y) ? x.y : 300, mode: x.mode === 'still' ? 'still' : 'walk', at: x.createdAt || 0 }; }).filter(c => c.data).sort((a, b) => a.at - b.at); S.charsLoaded = true; window.charSync && window.charSync(); tryMigrate(); }, () => { }));
+ S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.chars = sn.docs.map(d => { const x = d.data(); return { id: d.id, data: typeof x.data === 'string' && x.data.startsWith('data:image/') ? x.data : '', x: Number.isFinite(x.x) ? x.x : 0.5, y: Number.isFinite(x.y) ? x.y : 300, mode: x.mode === 'still' ? 'still' : 'walk', at: x.createdAt || 0 }; }).filter(c => c.data).sort((a, b) => a.at - b.at); S.charsLoaded = true; window.charSync && window.charSync(); tryMigrate(); if (S.got.size >= 3) render(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -575,6 +576,9 @@ document.addEventListener('click', async e => {
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
  if (a === 'charedit') { window.charEdit && window.charEdit(true); return; }
+ if (a === 'charmode') { await window.charMode(b.dataset.id, b.dataset.m); return; }
+ if (a === 'charall') { const ids = S.chars.length ? S.chars.map(c => c.id) : ['_cat']; for (const id of ids) await window.charMode(id, b.dataset.m); toast(b.dataset.m === 'still' ? '모두 멈췄어요' : '모두 걸어다녀요'); return; }
+ if (a === 'chardel') { if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = '정말?'; return; } await w(() => deleteDoc(sub('chars', b.dataset.id)), '캐릭터를 뺐어요'); return; }
  if (a === 'delphoto') { if (!canPhoto()) return toast('사진은 남자친구만 지울 수 있어요'); const id = b.dataset.id; if (delPhotoArm === id && !(await ensureOwner())) return; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); return; }
  if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
@@ -725,7 +729,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   el.addEventListener('pointerdown', e => {
    if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
-   if (editing) { if (w.id === '_cat') return; drag = { w, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; el.setPointerCapture(e.pointerId); return; }
+   if (editing) { drag = { w, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; el.setPointerCapture(e.pointerId); return; }
    w.bub.classList.remove('zz'); w.bub.textContent = any(SAY_LOVE);
    hearts(w, w.anim === 'love' ? 2 : 4); setAnim(w, 'love', 2600);
    if (navigator.vibrate) try { navigator.vibrate(20); } catch (er) { }
@@ -738,16 +742,21 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   const up = async () => {
    if (!drag || drag.w !== w) return; const moved = drag.moved; drag = null; if (!moved) return;
    w.fx = w.x / Math.max(1, layer.clientWidth - W(w));
-   try { await updateDoc(sub('chars', w.id), { x: +w.fx.toFixed(4), y: Math.round(w.y), movedBy: S.uid, movedAt: Date.now() }); } catch (er) { console.error(er); toast('위치를 저장하지 못했어요'); }
+   try { await saveChar(w.id, { x: +w.fx.toFixed(4), y: Math.round(w.y) }); } catch (er) { console.error(er); toast('위치를 저장하지 못했어요'); }
   };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   ws.set(id, w); return w;
  }
+ async function saveChar(id, o) {
+  if (id === '_cat') { const u = {}; if ('x' in o) u.catX = o.x; if ('y' in o) u.catY = o.y; if ('mode' in o) u.catMode = o.mode; return updateDoc(cRef(), u); }
+  return updateDoc(sub('chars', id), { ...o, movedBy: S.uid, movedAt: Date.now() });
+ }
+ window.charMode = async (id, mode) => { try { await saveChar(id, { mode }); } catch (er) { console.error(er); toast('바꾸지 못했어요'); } };
  function place(w) { w.el.style.transform = `translate(${w.x.toFixed(1)}px, ${w.y.toFixed(1)}px)`; }
- function toolText(w) { const [m, d] = w.tool.children; m.textContent = w.mode === 'walk' ? '🚶 걷는 중' : '⏸ 멈춤'; d.hidden = !canPhoto(); }
+ function toolText(w) { const [m, d] = w.tool.children; m.textContent = w.mode === 'walk' ? '🚶 걷는 중' : '⏸ 멈춤'; d.hidden = w.id === '_cat'; }
  // 데이터 → 화면
  window.charSync = () => {
-  const list = S.chars.length ? S.chars : [{ id: '_cat', data: '', x: 0.5, y: null, mode: 'walk' }];
+  const cc = S.couple || {}, list = S.chars.length ? S.chars : [{ id: '_cat', data: '', x: Number.isFinite(cc.catX) ? cc.catX : 0.5, y: Number.isFinite(cc.catY) ? cc.catY : null, mode: cc.catMode === 'still' ? 'still' : 'walk' }];
   const keep = new Set(list.map(c => c.id));
   for (const [id, w] of ws) if (!keep.has(id)) { w.el.remove(); ws.delete(id); }
   for (const c of list) {
@@ -773,8 +782,9 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   const b = e.target.closest('[data-cact]'); if (!b) return;
   e.stopPropagation();
   if (b.dataset.cact === 'done') return window.charEdit(false);
-  const el = b.closest('.cat'), w = [...ws.values()].find(v => v.el === el); if (!w || w.id === '_cat') return;
-  if (b.dataset.cact === 'mode') { const nm = w.mode === 'walk' ? 'still' : 'walk'; try { await updateDoc(sub('chars', w.id), { mode: nm, movedBy: S.uid, movedAt: Date.now() }); } catch (er) { toast('바꾸지 못했어요'); } }
+  const el = b.closest('.cat'), w = [...ws.values()].find(v => v.el === el); if (!w) return;
+  if (b.dataset.cact === 'mode') return window.charMode(w.id, w.mode === 'walk' ? 'still' : 'walk');
+  if (w.id === '_cat') return;
   if (b.dataset.cact === 'del') {
    if (!canPhoto()) return toast('캐릭터는 남자친구만 뺄 수 있어요');
    if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = '삭제?'; setTimeout(() => { b.dataset.arm = ''; b.textContent = '✕'; }, 2500); return; }
