@@ -155,7 +155,7 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .cat.has-sp.left .sptail{margin-right:0;margin-left:-5px}
 .cat .sphead{width:29px;height:29px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);flex:none;position:relative;z-index:1;background:#fff}
 .cat.has-sp{pointer-events:auto}
-.cat.has-sp .sp{transform-origin:50% 50%;transition:transform .25s linear}
+.cat.has-sp .sp{transform-origin:50% 50%;transition:transform .12s linear}
 .cat.has-sp.love .sphead{animation:mlove .3s ease-in-out infinite alternate}
 .cat.has-sp .bub{top:-24px;font-size:12px}
 .cat.has-sp .heart{font-size:12px;left:80%;top:0}
@@ -174,6 +174,8 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .crop .row2{display:flex;gap:8px;width:min(300px,82vw)}
 .crop .row2 .btn{flex:1}
 .crop .ct{font-size:15px;text-align:center}.crop .cs{font-size:13px;opacity:.75;text-align:center}
+.ripple{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--rose);pointer-events:none;animation:ripple .7s ease-out forwards}
+@keyframes ripple{from{transform:scale(.4);opacity:.9}to{transform:scale(4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -315,6 +317,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.26', d: '11/25', items: ['꼬리가 더 빠르고 크게, 두 겹 파동으로 꿈틀거려요 (징그러움 주의)', '꼬리 길이가 늘었다 줄었다 하고, 머리도 흔들리며 숨 쉬듯 움직여요', '가끔 움찔 경련하면서 순간적으로 확 튀어 나가요'] },
+ { v: '1.25', d: '11/25', items: ['"다음 생리까지" 카드의 빈 곳을 누르면 꼬리 캐릭터들이 그곳으로 우르르 모여요', '누른 자리에 물결이 퍼지고, 한 마리가 "출동!" 같은 말을 외쳐요', '4~5초 뒤엔 다시 흩어져서 자유롭게 헤엄쳐요'] },
  { v: '1.24', d: '11/25', items: ['꼬리 캐릭터 전용 대사 100개 추가 (고양이·일반 캐릭터와 따로)', '헤엄치다 가끔 혼잣말을 하고, 주기 단계(생리 중·PMS·가임기 등)에 맞는 대사도 해요', '난자 사진 근처에 가면 난자에게 말을 걸어요', '터치하면 꼬리 캐릭터만의 반응 대사가 나와요'] },
  { v: '1.23', d: '11/25', items: ['꼬리 캐릭터 얼굴 사진을 여러 장 한꺼번에 넣을 수 있어요', '사진을 넣을 때 앱 안에서 바로 편집해요: 끌어서 위치, 두 손가락·막대로 크기 조절', '단계별 사진·난자 사진·꼬리 캐릭터 모두 편집기로 맞춰서 넣어요 (움짤·영상은 그대로)'] },
  { v: '1.22', d: '11/24', items: ['꼬리 캐릭터 크기를 절반으로 줄이고, 꼬리가 끝으로 갈수록 뾰족해져요', '"다음 생리까지" 원 가운데에 여자친구 사진을 난자처럼 넣을 수 있어요 (움직이지 않음)', '난자 사진을 넣으면 D-day 글씨는 원 아래로 옮겨져요'] },
@@ -883,7 +887,18 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   late: ['어… 아직이야?', '다들 조용…', '기다리는 중', '괜찮을 거야']
  };
  const spPhase = () => { try { const p = M_().phase; return p === 'period' ? 'period' : p === 'pms' ? 'pms' : (p === 'fertile' || p === 'ovu') ? 'fertile' : p === 'late' ? 'late' : 'calm'; } catch (e) { return 'calm'; } };
- let spTalkAt = 0;
+ let spTalkAt = 0, spGoal = null;
+ const GO = ['출동!', '모여라!', '저기다!', '다들 따라와', '전원 집합!', '뭐가 있대!', '가즈아'];
+ // 카드의 빈 곳을 누르면 꼬리 캐릭터들이 그곳으로 모여요 (버튼·캐릭터를 누른 건 제외)
+ document.addEventListener('pointerdown', e => {
+  const hero = document.getElementById('hero');
+  if (editing || !hero || !hero.contains(e.target) || e.target.closest('button,a,input,label,.cat')) return;
+  const sw = [...ws.values()].filter(w => w.tail && w.mode === 'walk'); if (!sw.length) return;
+  const r = pool.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  spGoal = { x, y, until: performance.now() + 4500 };
+  const rp = document.createElement('div'); rp.className = 'ripple'; rp.style.left = x + 'px'; rp.style.top = y + 'px'; pool.appendChild(rp); setTimeout(() => rp.remove(), 800);
+  spSay(any(sw), any(GO), 1500); spTalkAt = performance.now() + 2500;
+ });
  function spSay(w, text, ms = 2200) { w.bub.textContent = text; w.bub.style.opacity = '1'; clearTimeout(w.sayT); w.sayT = setTimeout(() => { w.bub.style.opacity = ''; }, ms); }
  const W = w => w.tail ? 68 : w.img ? 76 : 68, H = w => w.tail ? 32 : w.img ? 76 : 52;
  let editing = false, drag = null;
@@ -896,7 +911,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   const tool = document.createElement('div'); tool.className = 'ctool';
   tool.innerHTML = '<button data-cact="mode"></button><button data-cact="del">✕</button>';
   el.appendChild(tool); layer.appendChild(el);
-  const w = { id, el, tool, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), head: el.querySelector('.sphead'), t1: el.querySelector('.spt1'), tail: false, ph: Math.random() * 6, bob: Math.random() * 6, img: '', mode: 'walk', fx: 0.5, y: 300, x: 0, dir: Math.random() < .5 ? 1 : -1, anim: 'walk', until: 0, speed: rand(32, 48), placed: false };
+  const w = { id, el, tool, bub: el.querySelector('.bub'), im: el.querySelector('.masc'), head: el.querySelector('.sphead'), t1: el.querySelector('.spt1'), tail: false, ph: Math.random() * 6, bob: Math.random() * 6, seed: Math.random() * 6, twitch: 0, img: '', mode: 'walk', fx: 0.5, y: 300, x: 0, dir: Math.random() < .5 ? 1 : -1, anim: 'walk', until: 0, speed: rand(32, 48), placed: false };
   el.addEventListener('pointerdown', e => {
    if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
@@ -926,12 +941,18 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  function place(w) { w.el.style.transform = `translate(${w.x.toFixed(1)}px, ${w.y.toFixed(1)}px)`; }
  // 꼬리: 머리 쪽은 거의 안 움직이고 끝으로 갈수록 크게 물결쳐요
  function drawTail(w) {
-  // 꼬리 가운데 선을 따라 머리 쪽은 두껍고(반폭 5) 끝으로 갈수록 뾰족하게(0) 채워진 모양을 그려요
-  const N = 24, P = [];
-  for (let i = 0; i <= N; i++) { const u = i / N, x = 84 - u * 84, a = 1.5 + 11 * u, y = 20 + a * Math.sin(u * 2.4 * Math.PI - w.ph); P.push([x, y, 6.5 * Math.pow(1 - u, 1.2) + 0.3]); }
+  // 큰 파동 + 빠른 잔파동을 겹치고, 꼬리 길이도 꿈틀꿈틀 늘었다 줄었다 해요
+  const N = 36, P = [], len = 84 * (0.9 + 0.12 * Math.sin(w.ph * 0.9 + w.seed)), tw = w.twitch > 0 ? 1.6 : 1;
+  for (let i = 0; i <= N; i++) {
+   const u = i / N, x = 84 - u * len, a = (1 + 12 * u) * tw;
+   const y = 20 + a * (Math.sin(u * 3.6 * Math.PI - w.ph) * 0.75 + Math.sin(u * 8 * Math.PI - w.ph * 2.3 + w.seed) * 0.3 + Math.sin(u * 14 * Math.PI - w.ph * 3.7) * 0.08 * u);
+   P.push([x, Math.max(1, Math.min(39, y)), 6.5 * Math.pow(1 - u, 1.15) + 0.3]);
+  }
   const L = [], R = [];
-  for (let i = 0; i <= N; i++) { const p = P[i], q = P[Math.min(N, i + 1)], o = P[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len; L.push((p[0] + nx * p[2]).toFixed(1) + ' ' + (p[1] + ny * p[2]).toFixed(1)); R.push((p[0] - nx * p[2]).toFixed(1) + ' ' + (p[1] - ny * p[2]).toFixed(1)); }
+  for (let i = 0; i <= N; i++) { const p = P[i], q = P[Math.min(N, i + 1)], o = P[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], ln = Math.hypot(dx, dy) || 1, nx = -dy / ln, ny = dx / ln; L.push((p[0] + nx * p[2]).toFixed(1) + ' ' + (p[1] + ny * p[2]).toFixed(1)); R.push((p[0] - nx * p[2]).toFixed(1) + ' ' + (p[1] - ny * p[2]).toFixed(1)); }
   w.t1.setAttribute('d', 'M' + L.join('L') + 'L' + R.reverse().join('L') + 'Z');
+  // 머리도 꿈틀: 살짝 흔들리고 숨 쉬듯 커졌다 작아졌다
+  if (w.anim !== 'love') w.head.style.transform = `rotate(${(Math.sin(w.ph * 1.3 + w.seed) * 9).toFixed(1)}deg) scale(${(1 + 0.05 * Math.sin(w.ph * 2.2)).toFixed(3)},${(1 - 0.05 * Math.sin(w.ph * 2.2)).toFixed(3)})`;
  }
  function toolText(w) { const [m, d] = w.tool.children; m.textContent = w.mode === 'walk' ? '🚶 걷는 중' : '⏸ 멈춤'; d.hidden = w.id === '_cat'; }
  // 데이터 → 화면
@@ -980,20 +1001,32 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   layer.hidden = !on && !editing;
   for (const w of ws.values()) {
    if (w.tail) {
-    w.ph += dt * (w.anim === 'love' ? 16 : editing ? 3 : w.mode === 'still' ? 5 : 10); drawTail(w);
+    if (w.twitch > 0) w.twitch -= dt;
+    else if (!editing && Math.random() < dt * 0.25) { w.twitch = rand(0.15, 0.35); w.ph += rand(1, 3); } // 가끔 움찔 경련
+    w.ph += dt * (w.anim === 'love' ? 30 : editing ? 6 : w.twitch > 0 ? 34 : spGoal ? 24 : w.mode === 'still' ? 11 : 18); drawTail(w);
     if (w.anim === 'love' && now > w.until) setAnim(w, w.mode === 'still' ? 'still' : 'walk', 0);
     const mx = Math.max(1, pool.clientWidth - W(w)), my = Math.max(1, pool.clientHeight - H(w));
     if (!editing && w.mode === 'walk' && w.anim !== 'love') {
      // 1~2.5초마다 도는 방향·속도를 바꿔서 불규칙하게
-     if (now > w.nextTurn) { w.turn = rand(-2.2, 2.2); w.sp = rand(0.6, 1.4) * w.speed; w.nextTurn = now + rand(1000, 2500); }
-     w.hd += w.turn * dt;
-     w.x += Math.cos(w.hd) * w.sp * dt; w.y += Math.sin(w.hd) * w.sp * dt;
+     if (spGoal && now > spGoal.until) spGoal = null;
+     if (spGoal) {
+      // 머리 위치에서 목표까지 방향으로 부드럽게 회전, 가까우면 주변을 맴돌아요
+      const hx = w.x + (Math.cos(w.hd) < 0 ? 14 : W(w) - 14), hy = w.y + H(w) / 2, dx = spGoal.x - hx, dy = spGoal.y - hy, dist = Math.hypot(dx, dy);
+      let want = Math.atan2(dy, dx); if (dist < 28) want += Math.PI / 2;
+      let diff = Math.atan2(Math.sin(want - w.hd), Math.cos(want - w.hd));
+      w.hd += Math.max(-1, Math.min(1, diff)) * 5 * dt + rand(-0.6, 0.6) * dt;
+      w.sp = w.speed * (dist < 28 ? 0.7 : dist > 120 ? 2.8 : 1.8); w.nextTurn = 0;
+     } else {
+      if (now > w.nextTurn) { w.turn = rand(-2.2, 2.2); w.sp = rand(0.6, 1.4) * w.speed; w.nextTurn = now + rand(1000, 2500); }
+      w.hd += w.turn * dt;
+     }
+     const boost = w.twitch > 0 ? 2.6 : 1; w.x += Math.cos(w.hd) * w.sp * boost * dt; w.y += Math.sin(w.hd) * w.sp * boost * dt;
      // 카드 밖으로 못 나가게 벽에서 튕겨요
      if (w.x < 0) { w.x = 0; w.hd = Math.PI - w.hd; } else if (w.x > mx) { w.x = mx; w.hd = Math.PI - w.hd; }
      if (w.y < 0) { w.y = 0; w.hd = -w.hd; } else if (w.y > my) { w.y = my; w.hd = -w.hd; }
      const nd = Math.cos(w.hd) < 0 ? -1 : 1; if (nd !== w.dir) { w.dir = nd; cls(w); }
      const tilt = Math.max(-35, Math.min(35, Math.atan2(Math.sin(w.hd), Math.abs(Math.cos(w.hd))) * 180 / Math.PI));
-     w.el.querySelector('.sp').style.transform = `rotate(${(w.dir < 0 ? -tilt : tilt).toFixed(1)}deg)`;
+     const wig = Math.sin(w.ph * 0.8 + w.seed) * 7; w.el.querySelector('.sp').style.transform = `rotate(${((w.dir < 0 ? -tilt : tilt) + wig).toFixed(1)}deg)`;
     }
     w.x = Math.min(Math.max(0, w.x), mx); w.y = Math.min(Math.max(0, w.y), my); place(w);
     if (!editing && w.anim !== 'love') {
