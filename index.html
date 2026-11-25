@@ -164,6 +164,16 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .egg::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:3px dotted rgba(255,160,190,.9)}
 .egg img{position:relative;width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,170,195,.9),0 4px 14px rgba(223,65,105,.25)}
 .ddline{font-family:"Gowun Dodum",sans-serif;font-size:30px;line-height:1.1;margin-top:6px}.ddline small{display:block;font-family:"Noto Sans KR",sans-serif;font-size:13px;color:var(--mute)}
+.crop{position:fixed;inset:0;z-index:20;background:rgba(15,8,20,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);color:#fff}
+.crop[hidden]{display:none}
+.crop .cv{position:relative;width:min(300px,82vw);height:min(300px,82vw);overflow:hidden;touch-action:none;border-radius:16px;background:#000}
+.crop .cv img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;max-width:none}
+.crop .mask{position:absolute;inset:0;pointer-events:none;border-radius:50%;box-shadow:0 0 0 999px rgba(0,0,0,.55);outline:2px solid rgba(255,255,255,.8)}
+.crop.sq .mask{border-radius:10px}
+.crop input[type=range]{width:min(300px,82vw);accent-color:var(--rose)}
+.crop .row2{display:flex;gap:8px;width:min(300px,82vw)}
+.crop .row2 .btn{flex:1}
+.crop .ct{font-size:15px;text-align:center}.crop .cs{font-size:13px;opacity:.75;text-align:center}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -261,6 +271,13 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
     </g>
   </svg>
 </div>
+<div class="crop" id="crop" hidden>
+  <p class="ct" id="cropTitle">사진 맞추기</p>
+  <div class="cv" id="cropView"><img id="cropImg" alt=""><div class="mask"></div></div>
+  <p class="cs">손가락으로 끌어서 옮기고, 두 손가락이나 아래 막대로 크기를 조절해요</p>
+  <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label="크기">
+  <div class="row2"><button class="btn ghost" id="cropSkip" style="color:#fff;border-color:rgba(255,255,255,.4)">빼기</button><button class="btn" id="cropOk">확인</button></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -298,6 +315,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.24', d: '11/25', items: ['꼬리 캐릭터 전용 대사 100개 추가 (고양이·일반 캐릭터와 따로)', '헤엄치다 가끔 혼잣말을 하고, 주기 단계(생리 중·PMS·가임기 등)에 맞는 대사도 해요', '난자 사진 근처에 가면 난자에게 말을 걸어요', '터치하면 꼬리 캐릭터만의 반응 대사가 나와요'] },
+ { v: '1.23', d: '11/25', items: ['꼬리 캐릭터 얼굴 사진을 여러 장 한꺼번에 넣을 수 있어요', '사진을 넣을 때 앱 안에서 바로 편집해요: 끌어서 위치, 두 손가락·막대로 크기 조절', '단계별 사진·난자 사진·꼬리 캐릭터 모두 편집기로 맞춰서 넣어요 (움짤·영상은 그대로)'] },
  { v: '1.22', d: '11/24', items: ['꼬리 캐릭터 크기를 절반으로 줄이고, 꼬리가 끝으로 갈수록 뾰족해져요', '"다음 생리까지" 원 가운데에 여자친구 사진을 난자처럼 넣을 수 있어요 (움직이지 않음)', '난자 사진을 넣으면 D-day 글씨는 원 아래로 옮겨져요'] },
  { v: '1.21', d: '11/24', items: ['꼬리 캐릭터가 "다음 생리까지" 카드 안에서 불규칙하게 헤엄쳐요', '카드 밖으로는 나가지 않고 벽에 닿으면 튕겨 나와요', '여러 마리 넣으면 각자 다르게 헤엄쳐요'] },
  { v: '1.20', d: '11/24', items: ['얼굴 사진으로 꼬리 캐릭터를 만들 수 있어요: 얼굴이 머리가 되고 꼬리를 살랑거리며 헤엄쳐 다녀요', '꼬리 캐릭터도 멈추기·위치 옮기기·터치하면 애교 다 돼요'] },
@@ -485,7 +504,7 @@ function renderSet(M) {
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
- h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기<input type="file" accept="image/*" data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">${S.egg ? `<img src="${esc(S.egg)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #ffc3d1">` : '<span style="font-size:28px;width:44px;text-align:center">🥚</span>'}<span style="flex:1">가운데 난자 사진<br><span class="small">"다음 생리까지" 원 가운데에 고정돼요</span></span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${S.egg ? '바꾸기' : '사진 선택'}<input type="file" accept="image/*" data-egg="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${S.egg ? '<button class="btn ghost" data-act="delegg" style="flex:none;min-height:40px;font-size:14px">빼기</button>' : ''}</div><p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
+ h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기 (여러 장 가능)<input type="file" accept="image/*" multiple data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">${S.egg ? `<img src="${esc(S.egg)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #ffc3d1">` : '<span style="font-size:28px;width:44px;text-align:center">🥚</span>'}<span style="flex:1">가운데 난자 사진<br><span class="small">"다음 생리까지" 원 가운데에 고정돼요</span></span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${S.egg ? '바꾸기' : '사진 선택'}<input type="file" accept="image/*" data-egg="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${S.egg ? '<button class="btn ghost" data-act="delegg" style="flex:none;min-height:40px;font-size:14px">빼기</button>' : ''}</div><p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
  h += `<label class="row" style="margin-top:10px">🐈 캐릭터 보이기<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
@@ -693,9 +712,51 @@ async function readMedia(f) {
  const isGif = f.type === 'image/gif' || /\.gif$/i.test(f.name);
  if (f.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(f.name)) return shrinkVideo(f);
  if (isGif && f.size <= 650000) return readURL(f);
- return shrink(f);
+ const d = await cropImage(f, { out: 480, round: true, title: cropN.n > 1 ? `사진 맞추기 (${cropN.i}/${cropN.n})` : '사진 맞추기' });
+ if (!d) throw Object.assign(new Error('skip'), { skip: true });
+ return d;
 }
+// ── 사진 자르기 편집기: 끌어서 옮기고, 두 손가락·막대로 크기 조절 → 정사각형으로 잘라요 ──
+function cropImage(file, { out = 400, round = true, title = '사진 맞추기' } = {}) {
+ return new Promise(async (resolve) => {
+  const box = $('#crop'), view = $('#cropView'), img = $('#cropImg'), zoom = $('#cropZoom');
+  const url = URL.createObjectURL(file);
+  try { await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = url; }); }
+  catch (e) { URL.revokeObjectURL(url); return resolve(null); }
+  box.classList.toggle('sq', !round); $('#cropTitle').textContent = title; box.hidden = false;
+  const V = view.clientWidth, W0 = img.naturalWidth, H0 = img.naturalHeight, base = Math.max(V / W0, V / H0);
+  let z = 1, ox = (V - W0 * base) / 2, oy = (V - H0 * base) / 2; zoom.value = 1;
+  const clamp = () => { const sc = base * z; ox = Math.min(0, Math.max(V - W0 * sc, ox)); oy = Math.min(0, Math.max(V - H0 * sc, oy)); };
+  const draw = () => { clamp(); img.style.transform = `translate(${ox}px,${oy}px) scale(${base * z})`; };
+  const zoomTo = (nz, cx = V / 2, cy = V / 2) => { nz = Math.min(4, Math.max(1, nz)); const k = nz / z; ox = cx - (cx - ox) * k; oy = cy - (cy - oy) * k; z = nz; zoom.value = z; draw(); };
+  draw();
+  const pts = new Map(); let last = null, pinch = null;
+  const down = e => { view.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z }; } last = [e.clientX, e.clientY]; };
+  const move = e => {
+   if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+   if (pts.size === 2 && pinch) { const [a, b] = [...pts.values()], r = view.getBoundingClientRect(); zoomTo(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top); return; }
+   if (pts.size === 1 && last) { ox += e.clientX - last[0]; oy += e.clientY - last[1]; last = [e.clientX, e.clientY]; draw(); }
+  };
+  const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; const p = [...pts.values()][0]; last = p ? [p[0], p[1]] : null; };
+  const onZoom = () => zoomTo(parseFloat(zoom.value));
+  view.addEventListener('pointerdown', down); view.addEventListener('pointermove', move); view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up); zoom.addEventListener('input', onZoom);
+  const done = (ok) => {
+   view.removeEventListener('pointerdown', down); view.removeEventListener('pointermove', move); view.removeEventListener('pointerup', up); view.removeEventListener('pointercancel', up); zoom.removeEventListener('input', onZoom);
+   $('#cropOk').onclick = $('#cropSkip').onclick = null; box.hidden = true;
+   let data = null;
+   if (ok) { const sc = base * z, c = document.createElement('canvas'); c.width = c.height = out; c.getContext('2d').drawImage(img, -ox / sc, -oy / sc, V / sc, V / sc, 0, 0, out, out); data = c.toDataURL('image/jpeg', 0.85); }
+   img.removeAttribute('src'); URL.revokeObjectURL(url); resolve(data);
+  };
+  $('#cropOk').onclick = () => done(true); $('#cropSkip').onclick = () => done(false);
+ });
+}
+let cropN = { i: 0, n: 0 };
 async function readFace(f) {
+ const data = await cropImage(f, { out: 200, round: true, title: cropN.n > 1 ? `얼굴 맞추기 (${cropN.i}/${cropN.n})` : '얼굴 맞추기' });
+ if (!data) throw Object.assign(new Error('skip'), { skip: true });
+ return { data, note: '' };
+}
+async function readFaceOld(f) {
  const bmp = await createImageBitmap(f), m = Math.min(bmp.width, bmp.height), c = document.createElement('canvas'); c.width = c.height = 200;
  c.getContext('2d').drawImage(bmp, (bmp.width - m) / 2, (bmp.height - m) / 2, m, m, 0, 0, 200, 200);
  return { data: c.toDataURL('image/jpeg', 0.85), note: '' };
@@ -713,7 +774,8 @@ async function addChars(files, tail) {
  let ok = 0, big = 0;
  for (let i = 0; i < files.length; i++) {
   try {
-   const r = tail ? await readFace(files[i]) : await readChar(files[i]); if (r.note) big++;
+   cropN = { i: i + 1, n: files.length };
+   let r; try { r = tail ? await readFace(files[i]) : await readChar(files[i]); } catch (er) { if (er.skip) continue; throw er; } if (r.note) big++;
    await setDoc(doc(collection(db, 'couples', S.code, 'chars')), { data: r.data, x: Math.min(0.85, 0.15 + i * 0.18), y: Math.round(baseY + (i % 3) * 30), mode: 'walk', tail: !!tail, createdAt: Date.now() + i, by: S.uid });
    ok++;
   } catch (err) { console.error(err); if (err.code === 'permission-denied') { toast('저장 권한이 없어요. Firebase 규칙을 확인해 주세요'); return; } }
@@ -735,8 +797,9 @@ async function tryMigrate() {
 }
 document.addEventListener('change', async e => {
  if (e.target.dataset && e.target.dataset.egg && e.target.files && e.target.files[0] && S.code) {
+  cropN = { i: 1, n: 1 };
   try { const r = await readFace(e.target.files[0]); await setDoc(sub('photos', 'egg'), { data: r.data, by: S.uid, updatedAt: Date.now() }); toast('난자 사진을 넣었어요'); }
-  catch (err) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '사진을 읽지 못했어요'); }
+  catch (err) { if (!err.skip) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '사진을 읽지 못했어요'); } }
   e.target.value = ''; return;
  }
  if (e.target.dataset && e.target.dataset.addchar && e.target.files && e.target.files.length && S.code) {
@@ -754,7 +817,8 @@ document.addEventListener('change', async e => {
   let ok = 0, why = '';
   for (let i = 0; i < files.length; i++) {
    let data;
-   try { data = await readMedia(files[i]); } catch (err) { console.error(err); why = files[i].type.startsWith('video/') ? 'video' : 'read'; continue; }
+   cropN = { i: i + 1, n: files.length };
+   try { data = await readMedia(files[i]); } catch (err) { if (err.skip) continue; console.error(err); why = files[i].type.startsWith('video/') ? 'video' : 'read'; continue; }
    try { await setDoc(sub('photos', free[i]), { data, by: S.uid, updatedAt: Date.now() + i }); ok++; }
    catch (err) { console.error(err); why = err.code === 'permission-denied' ? 'rule' : 'net'; }
   }
@@ -807,6 +871,20 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  const catOn = () => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } };
  const rand = (a, b) => a + Math.random() * (b - a), any = a => a[Math.floor(Math.random() * a.length)];
  const SAY_SIT = ['zZ', '…', '냐아', '꾹꾹', '♪'], SAY_LOVE = ['냥♡', '쓰다듬어 줘', '헤헤', '좋아해', '골골골…', '간식 주세요', '최고야', '😽', '안아 줘', '뿌잉'];
+ // ── 꼬리 캐릭터 대사 (고양이·일반 캐릭터와 따로) ──
+ const SP = {
+  swim: ['영차 영차', '1등은 나야', '저기 보인다…!', '뒤처지면 끝이다', '꼬리 쥐 났어', '훈련은 실전처럼', '3억 대 1…', '숨 참고 쭉!', '오늘 폼 좋은데?', '물살이 세다', '지름길 없나', '방향 맞지?', '꼬리 힘 빡!', '누가 내 자리 밀었어', '페이스 조절 중', '목표 확인 완료', '앞에 누구 있어?', '조금만 더…', '나 지금 신기록', '헉헉…', '자유형 장인', '포기란 없다', '길 막지 마', '이 맛에 헤엄치지', '난 이미 늦은 걸까'],
+  tap: ['앗 들켰다', '간지러워!', '나 뽑아 줘', '응원해 줘서 고마워', '지금 바빠요', '출발 신호인가?!', '왜 불러요?', '나 1등 할 거야', '쓰담 감사', '꼬리 만지지 마', '손가락 크다…', '사진 찍지 마요', '나 귀엽지?', '부스터 받았다!', '헤엄 방해 금지', '살려 주세요', '하이파이브!', '나만 봐 줘', '눌러도 안 멈춰', '지금 집중 중이야', '덕분에 힘 난다', '날 키운 건 8할이 너야', '어디 가는지 알아?', '같이 갈래?', '또 눌렀어?'],
+  egg: ['공주님 찾았다', '문 열어 줘~', '왜 안 열려', '내가 1등이지?', '똑똑, 계세요?', '여기 맞지?', '드디어…!', '와 진짜 크다', '빛나 보여', '줄 서세요 줄', '먼저 왔다니까', '입장권 있어요'],
+  period: ['이번 판은 졌다…', '다음 달에 다시', '잠깐 쉬어 갈게', '공주님 아프지 마', '오늘은 조용히', '핫팩 챙겼어?', '이번 달은 휴가', '대기실에서 기다릴게'],
+  pms: ['조용히 헤엄치자…', '지금은 눈치 볼 때', '살금살금', '말 걸지 마 다들', '공주님 기분 체크 중', '간식 바치러 간다', '숨소리도 조심'],
+  calm: ['컨디션 최고', '오늘도 연습', '몸 푸는 중', '평화로운 하루', '스트레칭 끝', '체력 충전 중', '오늘은 산책 모드'],
+  fertile: ['비상 비상!', '다들 긴장해', '오늘은 조심해야 돼', '경계 태세 돌입', '안전 제일', '신호 확인 중'],
+  late: ['어… 아직이야?', '다들 조용…', '기다리는 중', '괜찮을 거야']
+ };
+ const spPhase = () => { try { const p = M_().phase; return p === 'period' ? 'period' : p === 'pms' ? 'pms' : (p === 'fertile' || p === 'ovu') ? 'fertile' : p === 'late' ? 'late' : 'calm'; } catch (e) { return 'calm'; } };
+ let spTalkAt = 0;
+ function spSay(w, text, ms = 2200) { w.bub.textContent = text; w.bub.style.opacity = '1'; clearTimeout(w.sayT); w.sayT = setTimeout(() => { w.bub.style.opacity = ''; }, ms); }
  const W = w => w.tail ? 68 : w.img ? 76 : 68, H = w => w.tail ? 32 : w.img ? 76 : 52;
  let editing = false, drag = null;
  const ws = new Map();
@@ -823,7 +901,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
    if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
    if (editing) { if (w.tail) return; drag = { w, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; el.setPointerCapture(e.pointerId); return; }
-   w.bub.classList.remove('zz'); w.bub.textContent = any(SAY_LOVE);
+   w.bub.classList.remove('zz'); w.bub.textContent = w.tail ? any(SP.tap) : any(SAY_LOVE);
    hearts(w, w.anim === 'love' ? 2 : 4); setAnim(w, 'love', 2600);
    if (navigator.vibrate) try { navigator.vibrate(20); } catch (er) { }
   });
@@ -918,6 +996,12 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
      w.el.querySelector('.sp').style.transform = `rotate(${(w.dir < 0 ? -tilt : tilt).toFixed(1)}deg)`;
     }
     w.x = Math.min(Math.max(0, w.x), mx); w.y = Math.min(Math.max(0, w.y), my); place(w);
+    if (!editing && w.anim !== 'love') {
+     // 난자 근처에 오면 (머리 기준 70px 안)
+     if (!egg.hidden && now > (w.eggCd || 0)) { const hx = w.x + (w.dir < 0 ? 14 : W(w) - 14), hy = w.y + H(w) / 2, ex = egg.offsetLeft + 52, ey = egg.offsetTop + 52; if (Math.hypot(hx - ex, hy - ey) < 70) { spSay(w, any(SP.egg)); w.eggCd = now + 8000; spTalkAt = now + 1500; } }
+     // 가끔 혼잣말: 절반은 헤엄 대사, 절반은 오늘 주기 단계 대사
+     if (now > spTalkAt && Math.random() < dt * 0.08 * Math.max(1, 4 / Math.max(1, pool.children.length))) { spSay(w, Math.random() < 0.5 ? any(SP.swim) : any(SP[spPhase()])); spTalkAt = now + 2500; }
+    }
     continue;
    }
    if (editing || drag) { continue; }
