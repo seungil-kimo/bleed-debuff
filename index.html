@@ -317,6 +317,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.27', d: '11/25', items: ['기록하는 사람이 몸 상태(생리통·증상·기분)를 저장하면 상대 폰에 알림이 가요', '알림에 기록 내용이 짧게 요약돼요 (예: 생리통 심함 · 복통, 두통 · 기분 예민)', '설정 → 받을 알림에서 끌 수 있어요'] },
  { v: '1.26', d: '11/25', items: ['꼬리가 더 빠르고 크게, 두 겹 파동으로 꿈틀거려요 (징그러움 주의)', '꼬리 길이가 늘었다 줄었다 하고, 머리도 흔들리며 숨 쉬듯 움직여요', '가끔 움찔 경련하면서 순간적으로 확 튀어 나가요'] },
  { v: '1.25', d: '11/25', items: ['"다음 생리까지" 카드의 빈 곳을 누르면 꼬리 캐릭터들이 그곳으로 우르르 모여요', '누른 자리에 물결이 퍼지고, 한 마리가 "출동!" 같은 말을 외쳐요', '4~5초 뒤엔 다시 흩어져서 자유롭게 헤엄쳐요'] },
  { v: '1.24', d: '11/25', items: ['꼬리 캐릭터 전용 대사 100개 추가 (고양이·일반 캐릭터와 따로)', '헤엄치다 가끔 혼잣말을 하고, 주기 단계(생리 중·PMS·가임기 등)에 맞는 대사도 해요', '난자 사진 근처에 가면 난자에게 말을 걸어요', '터치하면 꼬리 캐릭터만의 반응 대사가 나와요'] },
@@ -495,7 +496,7 @@ function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
  let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
  h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
- h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
+ h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
@@ -653,7 +654,7 @@ document.addEventListener('click', async e => {
   F.memo = ($('#memo').value || '').slice(0, 500);
   const empty = F.flow == null && F.pain == null && !F.mood.length && !F.sym.length && !F.memo.trim();
   closeSheet();
-  await w(() => empty ? deleteDoc(sub('logs', s)) : setDoc(sub('logs', s), { date: s, ...F }), '저장했어요');
+  await w(() => empty ? deleteDoc(sub('logs', s)) : setDoc(sub('logs', s), { date: s, ...F, by: S.uid, updatedAt: Date.now() }), empty ? '저장했어요' : '저장했어요. 상대에게도 알림이 가요');
  }
  if (a === 'saveset') { const c = clampN($('#cy').value, 21, 45, 28), l = clampN($('#ln').value, 2, 10, 5); await w(() => updateDoc(cRef(), { settings: { cycle: c, length: l } }), '기본값을 저장했어요'); }
  if (a === 'kick') { const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid); if (other) { await w(() => updateDoc(cRef(), { ['members.' + other]: deleteField() }), '상대 연결을 끊었어요'); w(() => deleteDoc(sub('devices', other))); } }
