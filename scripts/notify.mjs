@@ -39,10 +39,11 @@ const couples = await db.collection('couples').get();
 for (const c of couples.docs) {
   const data = c.data(), members = data.members || {};
   const since = Date.now() - 2 * 3600e3; // 최근 2시간 안에 저장된 몸 상태 기록만
-  const [ps, devs, logs] = await Promise.all([
+  const [ps, devs, logs, msgs] = await Promise.all([
     c.ref.collection('periods').get(),
     c.ref.collection('devices').get(),
-    c.ref.collection('logs').where('updatedAt', '>', since).get()
+    c.ref.collection('logs').where('updatedAt', '>', since).get(),
+    c.ref.collection('msgs').where('at', '>', since).get()
   ]);
   const periods = ps.docs.map(d => ({ start: d.get('start'), end: d.get('end') }));
   const M = model(periods, data.settings || {}, t);
@@ -60,7 +61,16 @@ for (const c of couples.docs) {
       await send(c, dev, ev.key, ev.title, ev.body);
     }
 
-    // 2) 몸 상태 기록 알림: 상대가 증상·기분을 저장하면 (본인이 쓴 기록은 제외)
+    // 2) 한마디 알림: 상대가 보낸 한마디 (본인이 보낸 건 제외)
+    if (notify.msg !== false) {
+      for (const m of msgs.docs) {
+        const x = m.data();
+        if (typeof x.text !== 'string' || x.by === uid) continue;
+        await send(c, dev, `msg-${m.id}`, '💌 한마디가 도착했어요', x.text.slice(0, 120));
+      }
+    }
+
+    // 3) 몸 상태 기록 알림: 상대가 증상·기분을 저장하면 (본인이 쓴 기록은 제외)
     if (notify.log !== false) {
       for (const lg of logs.docs) {
         const L = lg.data();
