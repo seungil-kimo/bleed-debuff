@@ -223,6 +223,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
       <p class="duocap" id="duocap"></p>
     </div>
     <div id="notecard"></div>
+    <div id="msgcard"></div>
     <div id="codecard"></div>
     <div id="pushcard"></div>
     <div id="charAnchor"></div>
@@ -286,7 +287,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js';
 import { model, events, add, diff, pd, fd, isDate, clampN, OV_FIRST, OV_LAST, FERT_BEFORE, FERT_AFTER } from './cycle.js';
 import { PH, pick } from './content.js';
@@ -318,6 +319,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.33', d: '11/26', items: ['"오늘 보내볼 한마디"에 💌 보내기 버튼: 누르면 상대 폰에 알림이 가고 새 한마디를 추천해요', '🔀 다른 말 버튼으로 마음에 드는 한마디가 나올 때까지 바꿀 수 있어요', '받은 한마디는 앱 맨 위에 카드로도 떠요', '팁·한마디·선물·데이트 추천 내용을 크게 늘렸어요 (생리 기간 한마디 60개, 선물 50개, 데이트 40개 등)'] },
  { v: '1.32', d: '11/26', items: ['꼬리 캐릭터 대사 중 너무 노골적인 표현 약 90개를 빼고, 가벼운 개그 대사로 바꿨어요', '대사 개수는 그대로 500개예요'] },
  { v: '1.31', d: '11/26', items: ['꼬리 캐릭터 대사를 약 5배(101개 → 500개)로 늘렸어요', '더 노골적이고 웃긴 19금 개그 대사 추가 (휴지, 콘돔, 주인 디스 등)', '주기 단계별 대사도 단계마다 20~40개로 늘었어요'] },
  { v: '1.30', d: '11/26', items: ['꼬리 캐릭터가 방향을 휙휙 바꾸지 않고 부드럽게 곡선을 그리며 완전 랜덤으로 헤엄쳐요', '몸이 360도 어느 방향으로든 자연스럽게 돌고, 얼굴은 항상 똑바로 보여요', '벽에 부딪혀 튕기지 않고 가까워지면 미리 부드럽게 돌아 나와요'] },
@@ -417,8 +419,9 @@ function render() {
  let ph_h = `<h2>${esc(ph.n)}${M.last && M.phase !== 'late' ? ` <span class="small">· 주기 ${Math.min(M.day, M.cycle)}일째</span>` : ''}</h2><p>${esc(body)}</p>`;
  if (P) {
   ph_h += `<h3>오늘은 이렇게 챙겨주세요</h3>${ul(pick(ph.care, 3, ck, di, 'care'))}`;
-  const msg = pick(ph.msg, 1, ck, di, 'msg')[0];
-  if (msg) ph_h += `<h3>오늘 보내볼 한마디</h3><div class="note" style="margin:0;display:block"><b>"${esc(msg)}"</b><button class="btn ghost" data-act="copymsg" data-m="${esc(msg)}" style="width:100%;margin-top:8px;min-height:44px">복사해서 보내기</button></div>`;
+  if (S.msgPhase !== M.phase || !ph.msg.includes(S.msgPick)) { S.msgPhase = M.phase; S.msgPick = pick(ph.msg, 1, ck, di, 'msg')[0] || ''; }
+  const msg = S.msgPick;
+  if (msg) ph_h += `<h3>오늘 보내볼 한마디</h3><div class="note" style="margin:0;display:block"><b>"${esc(msg)}"</b><div class="acts" style="margin-top:10px"><button class="btn" data-act="sendmsg">💌 보내기</button><button class="btn ghost" data-act="msgshuffle">🔀 다른 말</button></div><button class="btn ghost" data-act="copymsg" data-m="${esc(msg)}" style="width:100%;margin-top:6px;min-height:40px;font-size:14px;border:0;font-weight:400">복사해서 카톡으로 보내기</button></div>`;
   const g = pick(ph.gift, 3, ck, di, 'gift'); if (g.length) ph_h += `<h3>이런 선물 어때요</h3>${ul(g)}`;
   const d = pick(ph.date, 2, ck, di, 'date'); if (d.length) ph_h += `<h3>오늘의 데이트 추천</h3>${ul(d)}`;
  } else {
@@ -472,6 +475,15 @@ function renderDuo(M) {
  set($('#faceGf'), $('#faceGfV'), g); set($('#faceBf'), $('#faceBfV'), b);
  $('#tagGf').textContent = md[1]; $('#tagBf').textContent = md[2]; $('#duocap').textContent = md[3];
 }
+// 상대가 보낸 한마디: 48시간 안의 가장 최근 것 하나를 맨 위에 보여줘요
+function renderMsg() {
+ const el = $('#msgcard'); if (!el) return;
+ let seen = ''; try { seen = localStorage.getItem('bd-msg-seen') || ''; } catch (e) { }
+ const m = (S.msgs || []).find(x => x.by !== S.uid && Date.now() - x.at < 48 * 3600e3);
+ if (!m || m.id === seen) { el.innerHTML = ''; return; }
+ const ago = Math.max(0, Date.now() - m.at), t = ago < 60e3 ? '방금' : ago < 3600e3 ? Math.floor(ago / 60e3) + '분 전' : Math.floor(ago / 3600e3) + '시간 전';
+ el.innerHTML = `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--rose)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>💌 한마디가 도착했어요 <span class="small">· ${esc(t)}</span></b><button class="btn ghost" data-act="msgclose" data-id="${esc(m.id)}" aria-label="닫기" style="flex:none;min-height:36px;width:36px;padding:0;border:0">✕</button></div><p style="margin:6px 0 0;font-size:17px">"${esc(m.text)}"</p></div>`;
+}
 function renderCal(M) {
  const [y, mo] = S.month.split('-').map(Number), t = T();
  $('#mt').textContent = `${y}년 ${mo}월`;
@@ -502,7 +514,7 @@ function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
  let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
  h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
- h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
+ h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
@@ -642,6 +654,7 @@ function subscribe() {
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'logs'), sn => { const o = {}; sn.docs.forEach(d => { if (isDate(d.id)) o[d.id] = d.data(); }); S.logs = o; ready('l'); }, fail));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { S.rawPhotos = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.photosLoaded = true; rebuildMedia(); }, () => { }));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.rawChars = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.charsLoaded = true; rebuildMedia(); }, () => { }));
+ S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'msgs'), where('at', '>', Date.now() - 3 * 864e5)), sn => { S.msgs = sn.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => typeof m.text === 'string').sort((a, b) => b.at - a.at); renderMsg(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -695,6 +708,19 @@ document.addEventListener('click', async e => {
  if (a === 'charall') { const ids = S.chars.length ? S.chars.map(c => c.id) : ['_cat']; for (const id of ids) await window.charMode(id, b.dataset.m); toast(b.dataset.m === 'still' ? '모두 멈췄어요' : '모두 걸어다녀요'); return; }
  if (a === 'chardel') { if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = '정말?'; return; } const r = S.rawChars.find(x => x.id === b.dataset.id); await w(() => deleteDoc(sub('chars', b.dataset.id)), '캐릭터를 뺐어요'); dropMedia(r); return; }
  if (a === 'delphoto') { if (!canPhoto()) return toast('사진은 남자친구만 지울 수 있어요'); const id = b.dataset.id; if (delPhotoArm === id && !(await ensureOwner())) return; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; const r = S.rawPhotos.find(x => x.id === id); await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); dropMedia(r); return; }
+ if (a === 'msgshuffle') { const pool = (PH[M_().phase] || PH.none).msg.filter(x => x !== S.msgPick); if (pool.length) { S.msgPick = pool[Math.floor(Math.random() * pool.length)]; render(); } return; }
+ if (a === 'sendmsg') {
+  const text = S.msgPick; if (!text || !S.code) return;
+  b.disabled = true;
+  try {
+   await setDoc(doc(collection(db, 'couples', S.code, 'msgs')), { text, by: S.uid, at: Date.now() });
+   toast('보냈어요! 상대 폰에 곧 알림이 가요');
+   const pool = (PH[M_().phase] || PH.none).msg.filter(x => x !== text); if (pool.length) S.msgPick = pool[Math.floor(Math.random() * pool.length)];
+   render();
+  } catch (e) { console.error(e); toast(e.code === 'permission-denied' ? '보낼 권한이 없어요. Firebase 규칙에 msgs 줄을 추가해 주세요' : '보내지 못했어요. 인터넷 연결을 확인해 주세요'); b.disabled = false; }
+  return;
+ }
+ if (a === 'msgclose') { try { localStorage.setItem('bd-msg-seen', b.dataset.id); } catch (e) { } $('#msgcard').innerHTML = ''; return; }
  if (a === 'copymsg') { try { await navigator.clipboard.writeText(b.dataset.m); toast('복사했어요. 카톡에 붙여넣어 보내세요'); } catch (e) { toast('길게 눌러 복사해 주세요'); } return; }
  if (a === 'seenote') { try { localStorage.setItem('bd-seen-ver', APP_VER); } catch (e) { } $('#notecard').innerHTML = ''; return; }
  if (a === 'copycode') { try { await navigator.clipboard.writeText(fmtCode(S.code)); toast('코드를 복사했어요'); } catch (e) { toast('코드를 길게 눌러 복사해 주세요'); } return; }
