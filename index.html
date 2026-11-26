@@ -192,6 +192,32 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 body.inview .wrap,body.inview #cat{display:none!important}
 body.inview{overflow:hidden;overscroll-behavior:none}
 body.inchat .tabbar{display:none!important}
+.cback:disabled{opacity:.25}
+.rchatb{position:relative;border:0;background:none;font-size:22px;width:40px;height:40px;flex:none}
+.rchatb .cb{position:absolute;top:0;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--rose);color:#fff;font-size:11px;font-weight:800;line-height:18px;font-style:normal}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rc{background:var(--card);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.rc small{font-size:12px;color:var(--mute)}.rc b{font-size:21px;font-weight:700}
+.rh{font-size:16px;margin:24px 0 10px}
+.rchart{height:190px;padding:26px 0 22px;border-bottom:1px solid var(--line)}
+.rin{position:relative;height:100%;display:flex;align-items:flex-end;gap:6px}
+.rcol{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.rcol i{display:block;width:100%;max-width:30px;border-radius:8px 8px 3px 3px;background:var(--roseS);position:relative}
+.rcol.on i{background:var(--rose)}
+.rcol em{position:absolute;left:50%;transform:translateX(-50%);top:-18px;font-style:normal;font-size:12px;font-weight:700}
+.rcol small{position:absolute;bottom:-21px;font-size:10px;color:var(--mute);white-space:nowrap}
+.ravg{position:absolute;left:0;right:0;border-top:1.5px dashed var(--lil);z-index:1;pointer-events:none}
+.ravg span{position:absolute;left:0;top:-19px;font-size:11px;color:var(--lil);background:var(--bg);padding:0 4px;border-radius:6px}
+.rnote{margin-top:24px;background:var(--card);border-radius:14px;padding:10px 14px;font-size:14px}
+.rbar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+.rbar .rk{width:84px;flex:none}.rbar .rn{width:34px;text-align:right;color:var(--mute);font-size:13px;flex:none}
+.rbar .rt{flex:1;height:12px;background:var(--card);border-radius:99px;overflow:hidden}.rbar .rt i{display:block;height:100%;border-radius:99px}
+.rchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.rchips span{font-size:13px;background:var(--roseS);border-radius:99px;padding:3px 10px}.rchips span.hot{background:var(--rose);color:#fff}
+.rflow{display:flex;align-items:flex-end;gap:5px;height:90px;padding-bottom:18px;overflow-x:auto}
+.rflow div{flex:1;min-width:22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.rflow i{display:block;width:100%;max-width:22px;background:var(--rose);border-radius:6px 6px 2px 2px}
+.rflow small{position:absolute;bottom:-17px;font-size:10px;color:var(--mute)}
+#repv .chatlist{padding:14px 16px 30px!important}
 body.inchat #chat{bottom:0!important}
 body.inchat .chatin{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
 body.inchat.kb .chatin{padding-top:6px;padding-bottom:0}
@@ -464,6 +490,10 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   <div class="chath"><b>⚙️ 설정</b><span class="small"></span></div>
   <div class="chatlist" style="display:block"><div id="setbody"></div></div>
 </div>
+<div class="chat" id="repv" aria-hidden="true">
+  <div class="chath"><button class="cback" data-ca="repm" data-d="-1" id="repPrev" aria-label="이전 달">‹</button><b id="repMonth" style="flex:1;text-align:center;font-size:17px">리포트</b><button class="cback" data-ca="repm" data-d="1" id="repNext" aria-label="다음 달" style="margin:0">›</button><button class="rchatb" data-ca="repchat" aria-label="채팅">💬<i class="cb" id="chatBadge" hidden></i></button></div>
+  <div class="chatlist" style="display:block"><div id="repbody"></div></div>
+</div>
 <div class="chat" id="chat" aria-hidden="true">
   <div class="chath" id="chatHead"></div>
   <div class="chatlist" id="chatList"></div>
@@ -475,7 +505,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
 <nav class="tabbar" id="tabbar" hidden>
   <button data-tab="set" aria-label="설정"><span>⚙️</span>설정</button>
   <button data-tab="home" aria-label="홈" class="on"><span>🏠</span>홈</button>
-  <button data-tab="chat" aria-label="채팅"><span>💬<i class="cb" id="chatBadge" hidden></i></span>채팅</button>
+  <button data-tab="rep" aria-label="월간 리포트"><span>📊</span>리포트</button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -514,6 +544,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.47', d: '11/26', items: ['📊 오른쪽 탭을 월간 리포트로 바꿨어요', '이번 달 생리 기간·주기, 평균 주기와 규칙성, 주기 변화 그래프', '자주 있던 증상·기분 순위와 지난달 비교, 생리통 심했던 날, 날짜별 양', '다음 생리·가임기 미리보기, 병원 갈 때 쓰는 요약 복사 버튼', '‹ › 로 지난달 리포트도 볼 수 있어요', '채팅은 리포트 오른쪽 위 💬 버튼으로 옮겼어요 (기존 메시지 그대로)'] },
  { v: '1.46', d: '11/26', items: ['접속이 안 되던 문제를 고쳤어요 (1.45 오류)', '채팅 입력칸을 키보드 쪽으로 더 붙였어요'] },
  { v: '1.44', d: '11/26', items: ['채팅에서 키보드를 올리면 생기던 빈칸을 없애고, 위쪽 이름이 가려지던 문제를 고쳤어요', '💬 내 채팅 프로필: 설정 맨 위에서 내 이름과 프로필 사진을 정하면 상대 채팅 화면에 보여요'] },
  { v: '1.43', d: '11/26', items: ['채팅 화면에서는 아래 설정·홈·채팅 탭을 숨겼어요 (채팅 창이 화면 끝까지 넓어져요)', '채팅에서 나갈 때는 왼쪽 위 ‹ 버튼을 누르거나 오른쪽으로 밀어요'] },
@@ -657,6 +688,7 @@ function render() {
  ph_h += `<p class="small" style="margin:14px 0 0">내용은 매일 바뀌어요</p>`;
  $('#phase').innerHTML = ph_h;
  renderSet(M);
+ if (TAB === 'rep') renderRep();
 }
 
 // 영상은 data: 주소를 blob 주소로 바꿔서 재생해요
@@ -792,7 +824,7 @@ function renderChat() {
 let headHTML = '';
 function updateChatMeta(fromRender) {
  const o = otherSt(), typing = o.typ && Date.now() - o.typ < 6000, st = typing ? '입력 중…' : actText(o.act), on = !typing && st === '지금 활동 중';
- const hh = `<button class="cback" data-ca="back" aria-label="홈으로">‹</button><div class="cav${on ? ' on' : ''}">${avHTML()}</div><div class="cn"><b>${esc(partnerName())}</b><small class="${on || typing ? 'on' : ''}">${esc(st)}</small></div>`;
+ const hh = `<button class="cback" data-ca="back" aria-label="리포트로">‹</button><div class="cav${on ? ' on' : ''}">${avHTML()}</div><div class="cn"><b>${esc(partnerName())}</b><small class="${on || typing ? 'on' : ''}">${esc(st)}</small></div>`;
  if (hh !== headHTML) { $('#chatHead').innerHTML = hh; headHTML = hh; }
  const ms = S.chat || [], lm = ms[ms.length - 1], se = $('#cseen'), ty = $('#ctyp');
  if (se) se.textContent = !lm || lm.by !== S.uid ? '' : lm.pending ? '보내는 중…' : (o.read || 0) >= lm.at ? '읽음' + (o.readAt ? ' · ' + ago(o.readAt) : '') : '전송됨';
@@ -802,7 +834,101 @@ function updateChatMeta(fromRender) {
  }
 }
 setInterval(() => { if (S.code && chatIsOpen()) updateChatMeta(); }, 1500);
-// 아래 탭: 설정(왼쪽) · 홈(가운데) · 채팅(오른쪽)
+// ── 📊 월간 리포트 ──
+const MOOD_E = { '좋음': '😊', '평온': '😌', '예민': '😤', '우울': '😢', '불안': '😰', '피곤': '😪' };
+const ymAdd = (ym, n) => { const [y, m] = ym.split('-').map(Number), d = new Date(y, m - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+const ymLabel = ym => { const [y, m] = ym.split('-').map(Number); return `${y}년 ${m}월`; };
+const md = s => { const d = pd(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
+function monthLogs(ym) {
+ const o = { days: 0, sym: {}, mood: {}, pain: [], flow: [], memo: 0 };
+ for (const [d, L] of Object.entries(S.logs || {})) {
+  if (d.slice(0, 7) !== ym || !L) continue; o.days++;
+  (Array.isArray(L.sym) ? L.sym : []).forEach(x => { if (SYMS.includes(x)) o.sym[x] = (o.sym[x] || 0) + 1; });
+  (Array.isArray(L.mood) ? L.mood : []).forEach(x => { if (MOODS.includes(x)) o.mood[x] = (o.mood[x] || 0) + 1; });
+  if (Number.isInteger(L.pain)) o.pain.push([d, L.pain]);
+  if (Number.isInteger(L.flow)) o.flow.push([d, L.flow]);
+  if (L.memo) o.memo++;
+ }
+ return o;
+}
+function repData(ym) {
+ const M = M_(), t = T(), ps = M.ps || [], inM = s => s && s.slice(0, 7) === ym;
+ const ends = p => isDate(p.end) && p.end >= p.start ? p.end : (p === M.last && M.ongoing ? null : add(p.start, M.len - 1));
+ const pers = ps.filter(p => inM(p.start) || inM(ends(p) || t)).map(p => { const e = ends(p), i = ps.indexOf(p), g = i > 0 ? diff(ps[i - 1].start, p.start) : null; return { start: p.start, end: e, len: e ? diff(p.start, e) + 1 : diff(p.start, t) + 1, now: !e, gap: g >= 15 && g <= 60 ? g : null }; });
+ const gaps = []; for (let i = 1; i < ps.length; i++) { const g = diff(ps[i - 1].start, ps[i].start); if (g >= 15 && g <= 60) gaps.push({ from: ps[i - 1].start, g }); }
+ const vals = gaps.map(x => x.g), mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0, sd = vals.length > 1 ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) : 0;
+ return { M, pers, gaps: gaps.slice(-10), mean, sd, cur: monthLogs(ym), prev: monthLogs(ymAdd(ym, -1)) };
+}
+function repText(ym, R) {
+ const L = R.cur, top = Object.entries(L.sym).sort((a, b) => b[1] - a[1]);
+ let s = `[출혈디버프 ${ymLabel(ym)} 리포트]\n`;
+ s += R.pers.length ? R.pers.map(p => `생리: ${md(p.start)}~${p.end ? md(p.end) : '진행 중'} (${p.len}일)${p.gap ? ` · 주기 ${p.gap}일` : ''}`).join('\n') + '\n' : '이번 달 생리 기록 없음\n';
+ if (R.gaps.length) s += `평균 주기 ${Math.round(R.mean)}일 (최근 ${R.gaps.length}번: ${R.gaps.map(x => x.g).join(', ')}일)\n`;
+ s += `평균 생리 기간 ${R.M.len}일\n`;
+ if (top.length) s += `자주 있던 증상: ${top.map(([k, n]) => `${k} ${n}일`).join(', ')}\n`;
+ const hard = L.pain.filter(x => x[1] >= 2); if (hard.length) s += `생리통 보통 이상: ${hard.length}일 (${hard.map(x => md(x[0])).join(', ')})\n`;
+ if (R.M.next) s += `다음 생리 예정: ${md(R.M.next)}\n`;
+ return s.trim();
+}
+function bars(obj, all, color, emo) {
+ const e = Object.entries(obj).sort((a, b) => b[1] - a[1]); if (!e.length) return '<p class="small">기록이 없어요</p>';
+ const mx = e[0][1];
+ return e.map(([k, n]) => `<div class="rbar"><span class="rk">${emo ? (emo[k] || '') + ' ' : ''}${esc(k)}</span><span class="rt"><i style="width:${Math.max(6, n / mx * 100)}%;background:${color}"></i></span><span class="rn">${n}일</span></div>`).join('');
+}
+function renderRep() {
+ const el = $('#repbody'); if (!el || !S.couple) return;
+ const t = T(), ym = S.repMonth || t.slice(0, 7), R = repData(ym), L = R.cur, P = R.prev, M = R.M;
+ const firstYm = M.ps && M.ps.length ? M.ps[0].start.slice(0, 7) : t.slice(0, 7);
+ $('#repMonth').textContent = ymLabel(ym);
+ $('#repPrev').disabled = ym <= firstYm; $('#repNext').disabled = ym >= t.slice(0, 7);
+ let h = '';
+ // 1) 한눈에
+ const p0 = R.pers[R.pers.length - 1];
+ h += `<div class="rgrid"><div class="rc"><small>이번 달 생리</small><b>${p0 ? `${md(p0.start)}${p0.end ? '~' + md(p0.end) : ''}` : '없음'}</b><small>${p0 ? (p0.now ? p0.len + '일째 진행 중' : p0.len + '일 동안') : ' '}</small></div>`
+  + `<div class="rc"><small>이번 주기</small><b>${p0 && p0.gap ? p0.gap + '일' : '—'}</b><small>${p0 && p0.gap && R.mean ? (p0.gap - Math.round(R.mean) === 0 ? '평균이랑 같아요' : `평균보다 ${Math.abs(p0.gap - Math.round(R.mean))}일 ${p0.gap > R.mean ? '길어요' : '짧아요'}`) : ' '}</small></div>`
+  + `<div class="rc"><small>평균 주기</small><b>${R.gaps.length ? Math.round(R.mean) + '일' : M.cycle + '일'}</b><small>${R.gaps.length > 1 ? '±' + R.sd.toFixed(1) + '일' : '기록이 더 필요해요'}</small></div>`
+  + `<div class="rc"><small>기록한 날</small><b>${L.days}일</b><small>${P.days ? `지난달 ${P.days}일` : ' '}</small></div></div>`;
+ // 2) 주기 그래프
+ h += `<h3 class="rh">🔁 주기 변화 <span class="small">최근 ${R.gaps.length}번</span></h3>`;
+ if (R.gaps.length) {
+  const mx = Math.max(...R.gaps.map(x => x.g)) + 3, mn = Math.max(0, Math.min(...R.gaps.map(x => x.g)) - 8), H = g => ((g - mn) / (mx - mn) * 100).toFixed(1);
+  h += `<div class="rchart"><div class="rin"><div class="ravg" style="bottom:${H(R.mean)}%"><span>평균 ${Math.round(R.mean)}일</span></div>${R.gaps.map(x => `<div class="rcol${x.from.slice(0, 7) === ymAdd(ym, -1) || x.from.slice(0, 7) === ym ? ' on' : ''}"><i style="height:${H(x.g)}%"><em>${x.g}</em></i><small>${md(x.from)}</small></div>`).join('')}</div></div><p class="small" style="margin:6px 0 0">막대 아래 날짜는 그 주기가 시작된 날이에요.</p>`;
+  const odd = R.gaps.filter(x => x.g < 21 || x.g > 35).length;
+  h += `<div class="rnote">${R.gaps.length < 3 ? '기록이 3번 이상 쌓이면 규칙성을 알려 줄게요.' : R.sd <= 3 ? '✅ 주기가 꽤 규칙적이에요.' : R.sd <= 7 ? '🙂 주기가 조금씩 달라지는 편이에요. 흔한 정도예요.' : '⚠️ 주기 차이가 큰 편이에요. 몇 달 계속되면 산부인과 상담을 받아 보는 것도 좋아요.'}${odd ? `<br>21~35일 범위를 벗어난 주기가 ${odd}번 있었어요.` : ''}</div>`;
+ } else h += '<p class="small">생리 시작일이 2번 이상 기록되면 그래프가 나와요.</p>';
+ // 3) 증상·기분
+ h += `<h3 class="rh">🩹 자주 있던 증상</h3>${bars(L.sym, L.days, 'var(--rose)')}`;
+ const ch = Object.keys({ ...L.sym, ...P.sym }).map(k => [k, (L.sym[k] || 0) - (P.sym[k] || 0)]).filter(x => x[1] && P.days).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3);
+ if (ch.length) h += `<p class="small" style="margin:6px 0 0">지난달보다 ${ch.map(([k, d]) => `${esc(k)} ${d > 0 ? '▲' + d : '▼' + -d}일`).join(' · ')}</p>`;
+ h += `<h3 class="rh">💭 기분</h3>${bars(L.mood, L.days, 'var(--lil)', MOOD_E)}`;
+ // 4) 생리통·양
+ h += `<h3 class="rh">😣 생리통</h3>`;
+ if (L.pain.length) {
+  const hard = L.pain.filter(x => x[1] >= 2).sort((a, b) => a[0] < b[0] ? -1 : 1), avgP = L.pain.reduce((a, x) => a + x[1], 0) / L.pain.length;
+  h += `<p style="margin:0">기록한 ${L.pain.length}일 중 <b>보통 이상 ${hard.length}일</b> · 평균 "${PAIN[Math.round(avgP)]}"</p>${hard.length ? `<div class="rchips">${hard.map(x => `<span class="${x[1] >= 3 ? 'hot' : ''}">${md(x[0])} ${PAIN[x[1]]}</span>`).join('')}</div>` : ''}`;
+ } else h += '<p class="small">기록이 없어요</p>';
+ if (L.flow.length) {
+  const fl = L.flow.sort((a, b) => a[0] < b[0] ? -1 : 1);
+  h += `<h3 class="rh">🩸 날짜별 양</h3><div class="rflow">${fl.map(([d, f]) => `<div><i style="height:${[8, 33, 66, 100][f] || 8}%" title="${FLOW[f]}"></i><small>${md(d)}</small></div>`).join('')}</div><p class="small" style="margin:4px 0 0">막대가 높을수록 양이 많은 날이에요 (없음·적음·보통·많음).</p>`;
+ }
+ // 5) 다음 달 미리보기
+ if (M.next) h += `<h3 class="rh">🔮 다음 예정</h3><p style="margin:0">다음 생리 <b>${md(M.next)}</b>${M.fs ? ` · 가임기 ${md(M.fs)}~${md(M.fe)} · 배란 예정 ${md(M.ov)}~${md(M.ov2)}` : ''}</p><p class="small" style="margin:4px 0 0">예측은 기록 평균으로 계산해서 실제와 다를 수 있어요.</p>`;
+ h += `<div class="acts" style="margin-top:18px"><button class="btn ghost" data-ca="repcopy">📋 요약 복사 (병원 갈 때)</button></div>`;
+ el.innerHTML = h;
+}
+document.addEventListener('click', async e => {
+ const b = e.target.closest('[data-ca]'); if (!b) return;
+ const a = b.dataset.ca;
+ if (a === 'repm') { S.repMonth = ymAdd(S.repMonth || T().slice(0, 7), +b.dataset.d); renderRep(); $('#repv .chatlist').scrollTop = 0; }
+ else if (a === 'repchat') setTab('chat');
+ else if (a === 'repcopy') {
+  const ym = S.repMonth || T().slice(0, 7), txt = repText(ym, repData(ym));
+  try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); toast('복사했어요'); } }
+  catch (er) { if (er.name !== 'AbortError') { try { await navigator.clipboard.writeText(txt); toast('복사했어요'); } catch (x) { toast('복사하지 못했어요'); } } }
+ }
+});
+
+// 아래 탭: 설정(왼쪽) · 홈(가운데) · 리포트(오른쪽) · 채팅은 리포트 위 💬 버튼
 let TAB = 'home';
 function setTab(t) {
  if (!S.code) t = 'home';
@@ -812,10 +938,11 @@ function setTab(t) {
  clearTimeout(setTab.tm);
  if (t === 'home') { if (document.body.classList.contains('inview')) { document.body.classList.remove('inview'); scrollTo(0, setTab.y || 0); } }
  else { if (was === 'home') setTab.y = scrollY; setTab.tm = setTimeout(() => { if (TAB !== 'home') document.body.classList.add('inview'); }, 270); }
- for (const [id, name] of [['#chat', 'chat'], ['#setv', 'set']]) { const v = $(id); v.classList.toggle('open', t === name); v.setAttribute('aria-hidden', t === name ? 'false' : 'true'); }
+ for (const [id, name] of [['#chat', 'chat'], ['#setv', 'set'], ['#repv', 'rep']]) { const v = $(id); v.classList.toggle('open', t === name); v.setAttribute('aria-hidden', t === name ? 'false' : 'true'); }
  document.querySelectorAll('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
  if (t !== 'chat') { $('#chatText').blur(); if (typT) { typT = 0; stPut({ typ: 0 }); } }
  if (t === 'chat') { renderChat.did = false; heartbeat(true); }
+ if (t === 'rep') renderRep();
  renderChat();
 }
 function chatOpen() { setTab('chat'); }
@@ -959,7 +1086,7 @@ function actMenu(id) {
 document.addEventListener('click', async e => {
  const b = e.target.closest('[data-ca]'); if (!b || b.closest('#chatList')) return;
  const a = b.dataset.ca, id = b.dataset.id;
- if (a === 'back') setTab('home');
+ if (a === 'back') setTab('rep');
  else if (a === 'vclose') closeViewer();
  else if (a === 'sclose') { pend = null; $('#csheet').hidden = true; }
  else if (a === 'mode') { sendMode = b.dataset.m; try { localStorage.setItem('bd-send-mode', sendMode); } catch (er) { } sheetUI(); }
@@ -986,7 +1113,8 @@ $('#cact').addEventListener('click', e => { if (e.target.id === 'cact') $('#cact
   if (!on) return; on = false;
   const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
   if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 900) return;
-  const order = ['set', 'home', 'chat'], i = order.indexOf(TAB), ni = Math.max(0, Math.min(2, i + (dx < 0 ? 1 : -1)));
+  if (TAB === 'chat') { if (dx > 0) setTab('rep'); return; }
+  const order = ['set', 'home', 'rep'], i = order.indexOf(TAB), ni = Math.max(0, Math.min(2, i + (dx < 0 ? 1 : -1)));
   if (ni !== i) setTab(order[ni]);
  }, { passive: true });
 }
