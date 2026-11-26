@@ -177,6 +177,8 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .crop .ct{font-size:15px;text-align:center}.crop .cs{font-size:13px;opacity:.75;text-align:center}
 .ripple{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--rose);pointer-events:none;animation:ripple .7s ease-out forwards}
 @keyframes ripple{from{transform:scale(.4);opacity:.9}to{transform:scale(4);opacity:0}}
+.egg img{pointer-events:auto;cursor:pointer}
+.egg .ebub{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);background:#fff;color:#c2185b;border:1.5px solid #ffb3c8;border-radius:12px;padding:2px 10px;font-size:13px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:2}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -319,6 +321,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.36', d: '11/26', items: ['단계별 정자 대사와 난자 대사를 2~3배로 늘렸어요', '생리 중엔 병문안·간식 셔틀, PMS엔 눈치 게임, 가임기엔 정자 체전, 배란일엔 결승전 컨셉으로 더 웃기게'] },
+ { v: '1.35', d: '11/26', items: ['난자 사진을 단계별로 넣을 수 있어요: 평소 · 가임기 · 배란일 · 생리 중', '정자 대사가 단계마다 달라져요 (생리 중엔 휴업 모드, 가임기엔 비상 모드 등)', '난자도 말을 해요: 가끔 혼잣말을 하고, 정자가 다가오면 대답하고, 누르면 반응해요'] },
  { v: '1.34', d: '11/26', items: ['즉시 알림: 💌 한마디, 생리 시작, 몸 상태 기록 알림이 30분 기다리지 않고 몇 초 안에 가요', '즉시 알림이 실패하면 지금처럼 GitHub가 대신 보내요 (두 번 가지 않아요)'] },
  { v: '1.33', d: '11/26', items: ['"오늘 보내볼 한마디"에 💌 보내기 버튼: 누르면 상대 폰에 알림이 가고 새 한마디를 추천해요', '🔀 다른 말 버튼으로 마음에 드는 한마디가 나올 때까지 바꿀 수 있어요', '받은 한마디는 앱 맨 위에 카드로도 떠요', '팁·한마디·선물·데이트 추천 내용을 크게 늘렸어요 (생리 기간 한마디 60개, 선물 50개, 데이트 40개 등)'] },
  { v: '1.32', d: '11/26', items: ['꼬리 캐릭터 대사 중 너무 노골적인 표현 약 90개를 빼고, 가벼운 개그 대사로 바꿨어요', '대사 개수는 그대로 500개예요'] },
@@ -359,7 +363,7 @@ const NOTES = [
 const APP_VER = NOTES[0].v;
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
-const S = { rawPhotos: [], rawChars: [], photosLoaded: false, egg: '', mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
+const S = { eggs: {}, rawPhotos: [], rawChars: [], photosLoaded: false, egg: '', mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
 const role = () => (S.couple && S.couple.members && S.couple.members[S.uid]) || 'me';
 
 const FLOW = ['없음', '적음', '보통', '많음'], PAIN = ['없음', '약함', '보통', '심함'];
@@ -408,6 +412,7 @@ function render() {
  $('#notecard').innerHTML = seenVer() === APP_VER ? '' : `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--lil)"><b>📝 제작자 노트 v${esc(nt.v)}</b><ul style="margin:6px 0 0;padding-left:20px;font-size:14px">${nt.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ghost" data-act="seenote" style="width:100%;margin-top:10px;min-height:44px">확인</button></div>`;
  const other = Object.keys(S.couple.members || {}).find(u => u !== S.uid);
  $('#codecard').innerHTML = other ? '' : `<div class="note" style="margin-bottom:14px;display:block"><b>상대와 연결해 주세요</b><span>상대 폰의 출혈디버프에서 이 커플 코드를 입력하면 연결돼요.</span><div class="code" style="margin-top:10px">${esc(fmtCode(S.code))}</div><button class="btn ghost" data-act="copycode" style="width:100%;margin-top:8px">코드 복사</button></div>`;
+ const ne = eggFor(M.phase); if (ne !== S.egg) { S.egg = ne; setTimeout(() => window.eggSync && window.eggSync(), 0); }
  let h = ringSVG(M) + `<span class="chip" style="background:var(--card);border:1.5px solid ${ph.c};color:${ph.c}">${esc(ph.n)}</span>`;
  if (M.last) h += `<div class="facts"><div>다음 생리<b>${esc(sd(M.next))}</b></div><div>가임기<b>${esc(sd(M.fs))}~${esc(sd(M.fe))}</b></div><div>평균 주기<b>${M.cycle}일</b></div></div>`;
  if (!P) h += `<div class="acts">${M.ongoing ? `<button class="btn" data-act="end">오늘 생리 끝났어요</button>` : `<button class="btn" data-act="start">오늘 생리 시작했어요</button>`}<button class="btn ghost" data-act="today">오늘 기록</button></div>`;
@@ -528,7 +533,7 @@ function renderSet(M) {
  } else {
   h += `<p class="small" style="margin-top:14px">📷 맨 위 사진과 캐릭터 그림은 남자친구만 넣고 바꿀 수 있어요.</p>`;
  }
- h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기 (여러 장 가능)<input type="file" accept="image/*" multiple data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">${S.egg ? `<img src="${esc(S.egg)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #ffc3d1">` : '<span style="font-size:28px;width:44px;text-align:center">🥚</span>'}<span style="flex:1">가운데 난자 사진<br><span class="small">"다음 생리까지" 원 가운데에 고정돼요</span></span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${S.egg ? '바꾸기' : '사진 선택'}<input type="file" accept="image/*" data-egg="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${S.egg ? '<button class="btn ghost" data-act="delegg" style="flex:none;min-height:40px;font-size:14px">빼기</button>' : ''}</div><p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
+ h += `<p class="lbl" style="margin-top:14px">캐릭터 (${S.chars.length}개)</p><p class="small" style="margin:0 0 6px">원하는 만큼 넣고, 끌어서 원하는 자리에 두고, 걷게 할지 멈춰 있게 할지 정할 수 있어요. 둘 다 넣고 빼고 옮길 수 있고, 서로의 폰에 똑같이 보여요.</p>${(() => { const L = S.chars.length ? S.chars : [{ id: '_cat', data: '', mode: (S.couple && S.couple.catMode) === 'still' ? 'still' : 'walk' }]; const allStill = L.every(c => c.mode === 'still'); return L.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">${c.data ? `<img src="${esc(c.data)}" alt="" style="width:40px;height:40px;object-fit:contain">` : '<span style="font-size:26px;width:40px;text-align:center">🐈</span>'}<span style="flex:1" class="small">${c.tail ? '〰️ ' : ''}${c.mode === 'still' ? '⏸ 멈춰 있어요' : (c.tail ? '헤엄쳐 다녀요' : '🚶 걸어다녀요')}</span><button class="pill" data-act="charmode" data-id="${esc(c.id)}" data-m="${c.mode === 'still' ? 'walk' : 'still'}" style="min-height:40px">${c.mode === 'still' ? '걷게 하기' : '멈추기'}</button>${c.id !== '_cat' ? `<button class="pill" data-act="chardel" data-id="${esc(c.id)}" style="min-height:40px">빼기</button>` : ''}</div>`).join('') + `<div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="charall" data-m="${allStill ? 'walk' : 'still'}">${allStill ? '🚶 모두 걷게 하기' : '⏸ 모두 멈추기'}</button></div>`; })()}<div class="acts" style="margin-top:4px"><button class="btn lil" data-act="charedit">✏️ 위치 옮기기</button>${canPhoto() ? `<label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 캐릭터 넣기<input type="file" accept="image/*" multiple data-addchar="1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>` : ''}</div><div class="acts" style="margin-top:4px"><label class="btn ghost" style="position:relative;display:flex;align-items:center;justify-content:center">+ 얼굴로 꼬리 캐릭터 만들기 (여러 장 가능)<input type="file" accept="image/*" multiple data-addchar="sp" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label></div><p class="lbl" style="margin-top:12px">🥚 가운데 난자 사진 (단계별)</p><p class="small" style="margin:0 0 4px">"다음 생리까지" 원 가운데에 고정돼요. 그날 단계에 맞는 사진이 나오고, 없으면 평소 사진이 나와요.</p>${EGG_SLOTS.map(([k, l]) => { const im = (S.eggs || {})[k] || (k === 'default' ? (S.eggs || {}).legacy : ''); return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">${im ? `<img src="${esc(im)}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #ffc3d1">` : '<span style="font-size:24px;width:40px;text-align:center">🥚</span>'}<span style="flex:1">${l}</span><label class="btn ghost" style="position:relative;flex:none;min-height:40px;display:flex;align-items:center;font-size:14px">${im ? '바꾸기' : '사진 선택'}<input type="file" accept="image/*" data-egg="${k}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label>${im ? `<button class="btn ghost" data-act="delegg" data-k="${k}" style="flex:none;min-height:40px;font-size:14px">빼기</button>` : ''}</div>`; }).join('')}<p class="small" style="margin:4px 0 0">얼굴이 가운데 오는 사진을 고르면 동그랗게 잘라서 머리로 쓰고, "다음 생리까지" 카드 안에서 꼬리를 살랑거리며 불규칙하게 헤엄쳐요. 여러 마리 넣을 수 있어요.</p>`;
  h += `<label class="row" style="margin-top:10px">🐈 캐릭터 보이기<input type="checkbox" id="cattoggle" ${(() => { try { return localStorage.getItem('bd-cat') !== 'off'; } catch (e) { return true; } })() ? 'checked' : ''}></label>`;
  h += `<details style="border:0;padding:6px 0 0"><summary class="small">버전 ${esc(APP_VER)} · 업데이트 내역</summary>${NOTES.map(n => `<p class="small" style="margin:8px 0 2px"><b>v${esc(n.v)}</b> (${esc(n.d)})</p><ul class="small" style="margin:0;padding-left:20px">${n.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</details>`;
  h += `<div class="acts">${other ? '<button class="btn ghost" data-act="kick">상대 연결 끊기</button>' : ''}<button class="btn ghost" data-act="leave">이 폰 연결 해제</button></div><p class="small">상대가 폰을 바꿔서 다시 연결해야 하면 "상대 연결 끊기"를 누른 다음 상대가 코드로 다시 연결하면 돼요.</p>`;
@@ -629,17 +634,21 @@ async function putMedia(data) {
  MEDIA.set(ref.id, data); idb.put(ref.id, data); return ref.id;
 }
 async function dropMedia(raw) { if (!raw || !raw.mid) return; try { await deleteDoc(doc(db, 'couples', S.code, 'media', raw.mid)); } catch (e) { } MEDIA.delete(raw.mid); idb.del(raw.mid); }
+// 난자 사진: 단계에 맞는 사진 → 없으면 평소 사진 → 예전 사진
+const EGG_SLOTS = [['default', '평소'], ['fertile', '가임기'], ['ovu', '배란일'], ['period', '생리 중']];
+const eggSlot = ph => ph === 'period' ? 'period' : ph === 'fertile' ? 'fertile' : ph === 'ovu' ? 'ovu' : 'default';
+function eggFor(ph) { const e = S.eggs || {}, k = eggSlot(ph); return e[k] || (k === 'ovu' ? e.fertile : '') || e.default || e.legacy || ''; }
 function rebuildMedia() {
- const o = { gf: {}, bf: {} }; S.mascots = {}; S.egg = '';
+ const o = { gf: {}, bf: {} }; S.mascots = {}; S.eggs = {};
  for (const x of S.rawPhotos) {
   const data = dataOf(x); if (!data) continue;
   if (x.id === 'mascot' || x.id === 'mascot2') { if (data.startsWith('data:image/')) S.mascots[x.id] = data; continue; }
-  if (x.id === 'egg') { if (data.startsWith('data:image/')) S.egg = data; continue; }
+  if (x.id === 'egg' || x.id.startsWith('egg-')) { if (data.startsWith('data:image/')) S.eggs[x.id === 'egg' ? 'legacy' : x.id.slice(4)] = data; continue; }
   const pr = x.id.split('-'), side = pr[0] === 'bf' ? 'bf' : 'gf', k = (pr[0] === 'bf' || pr[0] === 'gf') ? pr[1] : pr[0];
   (o[side][k] = o[side][k] || []).push({ id: x.id, data, at: x.updatedAt || 0 });
  }
  for (const sd of ['gf', 'bf']) for (const k in o[sd]) o[sd][k].sort((a, b) => a.at - b.at);
- S.photos = o;
+ S.photos = o; S.egg = eggFor(M_().phase);
  S.chars = S.rawChars.map(x => ({ id: x.id, data: dataOf(x), x: Number.isFinite(x.x) ? x.x : 0.5, y: Number.isFinite(x.y) ? x.y : 300, mode: x.mode === 'still' ? 'still' : 'walk', tail: !!x.tail, at: x.createdAt || 0 })).filter(c => c.data).sort((a, b) => a.at - b.at);
  window.eggSync && window.eggSync(); window.charSync && window.charSync();
  tryMigrate(); migrateLegacy();
@@ -713,7 +722,7 @@ document.addEventListener('click', async e => {
  if (a === 'create') { b.disabled = true; await createCouple(); b.disabled = false; return; }
  if (a === 'join') { b.disabled = true; await joinCouple(); b.disabled = false; return; }
  if (a === 'push') return pushInit(true);
- if (a === 'delegg') { const r = S.rawPhotos.find(x => x.id === 'egg'); await w(() => deleteDoc(sub('photos', 'egg')), '난자 사진을 뺐어요'); dropMedia(r); return; }
+ if (a === 'delegg') { const k = b.dataset.k || 'default', ids = k === 'default' ? ['egg-default', 'egg'] : ['egg-' + k]; for (const id of ids) { const r = S.rawPhotos.find(x => x.id === id); if (r) { await w(() => deleteDoc(sub('photos', id))); dropMedia(r); } } toast('난자 사진을 뺐어요'); return; }
  if (a === 'charedit') { window.charEdit && window.charEdit(true); return; }
  if (a === 'charmode') { await window.charMode(b.dataset.id, b.dataset.m); return; }
  if (a === 'charall') { const ids = S.chars.length ? S.chars.map(c => c.id) : ['_cat']; for (const id of ids) await window.charMode(id, b.dataset.m); toast(b.dataset.m === 'still' ? '모두 멈췄어요' : '모두 걸어다녀요'); return; }
@@ -900,7 +909,13 @@ async function tryMigrate() {
 document.addEventListener('change', async e => {
  if (e.target.dataset && e.target.dataset.egg && e.target.files && e.target.files[0] && S.code) {
   cropN = { i: 1, n: 1 };
-  try { const r = await readFace(e.target.files[0]); const prevEgg = S.rawPhotos.find(x => x.id === 'egg'); await setDoc(sub('photos', 'egg'), { mid: await putMedia(r.data), by: S.uid, updatedAt: Date.now() }); dropMedia(prevEgg); toast('난자 사진을 넣었어요'); }
+  const ek = ['default', 'fertile', 'ovu', 'period'].includes(e.target.dataset.egg) ? e.target.dataset.egg : 'default', eid = 'egg-' + ek;
+  try {
+   const r = await readFace(e.target.files[0]); const prev = S.rawPhotos.find(x => x.id === eid);
+   await setDoc(sub('photos', eid), { mid: await putMedia(r.data), by: S.uid, updatedAt: Date.now() }); dropMedia(prev);
+   if (ek === 'default') { const old = S.rawPhotos.find(x => x.id === 'egg'); if (old) { await deleteDoc(sub('photos', 'egg')); dropMedia(old); } }
+   toast('난자 사진을 넣었어요');
+  }
   catch (err) { if (!err.skip) { console.error(err); toast(err.code === 'permission-denied' ? '저장 권한이 없어요. Firebase 규칙을 확인해 주세요' : '사진을 읽지 못했어요'); } }
   e.target.value = ''; return;
  }
@@ -961,7 +976,11 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  new ResizeObserver(syncTop).observe(app); syncTop();
  // 꼬리 캐릭터는 "다음 생리까지" 카드 안에서만 헤엄쳐요
  const pool = document.createElement('div'); pool.id = 'swimPool'; pool.style.cssText = 'position:absolute;z-index:3;pointer-events:none'; app.appendChild(pool);
- const egg = document.createElement('div'); egg.className = 'egg'; egg.hidden = true; egg.innerHTML = '<img alt="">'; pool.appendChild(egg);
+ const egg = document.createElement('div'); egg.className = 'egg'; egg.hidden = true; egg.innerHTML = '<img alt=""><span class="ebub"></span>'; pool.appendChild(egg);
+ let eggTalkAt = performance.now() + 4000, eggT = 0;
+ function eggSay(text, ms = 2600) { if (egg.hidden || !text) return; const b = egg.querySelector('.ebub'); b.textContent = text; b.style.opacity = '1'; clearTimeout(eggT); eggT = setTimeout(() => { b.style.opacity = ''; }, ms); }
+ egg.querySelector('img').addEventListener('pointerdown', e => { e.stopPropagation(); eggSay(eggLine('tap')); eggTalkAt = performance.now() + 5000; });
+ setInterval(() => { const now = performance.now(); if (!egg.hidden && now > eggTalkAt && document.visibilityState === 'visible') { eggSay(eggLine('talk')); eggTalkAt = now + 7000 + Math.random() * 8000; } }, 1000);
  const syncPool = () => {
   const h = document.getElementById('hero'); if (!h) return; pool.style.left = h.offsetLeft + 'px'; pool.style.top = h.offsetTop + 'px'; pool.style.width = h.offsetWidth + 'px'; pool.style.height = h.offsetHeight + 'px';
   if (!egg.hidden) { const r = h.querySelector('.ring'); if (r) { const hr = h.getBoundingClientRect(), rr = r.getBoundingClientRect(); egg.style.left = (rr.left - hr.left + rr.width / 2 - 52) + 'px'; egg.style.top = (rr.top - hr.top + rr.height / 2 - 52) + 'px'; } }
@@ -984,13 +1003,20 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
   fertile: ["비상 비상!", "다들 긴장해", "오늘은 조심해야 돼", "경계 태세 돌입", "안전 제일", "신호 확인 중", "아니 피임은 하자", "콘돔 챙겼지?", "피임은 국룰", "주인아 정신 차려", "아빠 될 준비 됐어?", "지금은 아니야", "계획 있는 인생", "난자님 출근하셨다", "전원 무장", "레이스 시즌 개막", "경쟁 과열 주의", "흥분 금지", "진정해 다들", "결혼부터 하자", "통장 잔고 확인", "책임질 수 있어?", "안전벨트 매", "조심 또 조심", "계획은 함께", "안전운행 캠페인", "신중하게 가자", "둘 다 웃는 선택", "피임 확인 완료?", "주인 정신 똑바로"],
   late: ["어… 아직이야?", "다들 조용…", "기다리는 중", "괜찮을 거야", "나 아니야", "주인 식은땀", "주인 침착해", "테스트기 사러 가", "심장 쫄깃", "기도하는 중", "스트레스 때문일 거야", "공주님 괜찮아?", "주인 손잡아 드려", "일단 기다려 보자", "다들 숨죽이고 대기", "침착하게 기다려", "공주님 편히 쉬어", "조급해하지 마", "곧 오겠지", "다들 기도 중"]
  };
- const spPhase = () => { try { const p = M_().phase; return p === 'period' ? 'period' : p === 'pms' ? 'pms' : (p === 'fertile' || p === 'ovu') ? 'fertile' : p === 'late' ? 'late' : 'calm'; } catch (e) { return 'calm'; } };
+ const SPX = {"period": {"swim": ["오늘은 휴업이래", "빨간 날이라 쉬엄쉬엄", "공주님 아프대 조용히", "오늘 레이스 취소", "다들 숙소로 복귀", "이번 달은 다음 기회에", "미역국 냄새 난다", "핫팩 배달 지원 나간다", "오늘은 응원단 모드", "난자님 휴가 중", "오늘은 다 같이 쉬자", "주인아 설거지 해", "오늘은 자체 휴강", "레이스 대신 산책 중", "공주님 컨디션 최우선", "오늘 출근한 놈 누구야", "다들 집에 가", "이번 달 경기는 우천 취소", "관중석에서 응원만", "주인아 오늘 효도해", "오늘은 정자도 핫팩 필요", "휴가 신청서 냈다", "빨간불엔 멈춰야지", "공주님 배 아파서 다 비상", "오늘 미션: 조용히 하기", "미역국 원정대 출발", "초콜릿 배달 경쟁 중", "오늘 1등은 핫팩 사 온 놈", "다음 달 훈련표 작성 중", "공주님 눈치 레벨 MAX"], "tap": ["오늘은 쉬는 날이야", "조용히 해 공주님 주무셔", "나 지금 응원 중", "핫팩 사 왔어?", "오늘은 나도 쉰다", "건드리지 마 휴무야", "공주님 배 문질러 드려", "레이스 연기됐어", "쉿 공주님 쉬는 중", "나 오늘 비번이야", "날 왜 깨워 휴가 중인데", "간식 셔틀 가는 길", "내가 대신 아팠으면", "오늘은 착한 정자", "주인 대신 사과할게", "따뜻한 차 끓이는 중", "찜질팩 데우는 중", "이불 덮어 드리는 중", "조용히 응원 중이야", "오늘은 손만 잡아"], "egg": ["푹 쉬세요 난자님", "다음 달에 만나요", "오늘은 인사만 할게요", "아프지 마세요", "핫팩 놓고 갈게요", "문 앞에 간식 두고 가요", "오늘은 문 안 두드릴게요", "쾌차하세요 난자님", "선물만 두고 갑니다", "다음 달에 정식으로 올게요", "오늘은 병문안 왔어요", "꽃 놓고 갈게요"]}, "pms": {"swim": ["분위기 살벌하다", "다들 눈치 챙겨", "공주님 레이더 가동 중", "실수하면 끝장", "오늘은 말 아끼자", "간식 조공 행렬", "투명 정자 모드 ON", "숨 참고 지나가", "폭풍 전야 느낌", "다들 착하게 살자", "오늘 기압이 낮다", "레이더에 폭풍 감지", "한 마디 실수 = 게임 오버", "다들 말 조심 모드", "오늘은 칭찬만 하자", "간식 들고 대기", "눈치 게이지 99%", "분위기 파악 완료", "조용히 돌아서 가자", "공주님 웃으셨다! 안심", "아직 안 웃으셨다… 긴장", "오늘은 숨도 조용히", "떡볶이 배달 레이스", "내가 먼저 사과할게", "아무 이유 없이 미안해", "오늘 생존이 목표"], "tap": ["쉿 지금 예민 주의보", "나 아무 말도 안 했어", "건드리지 마 눈치 보는 중", "간식 가지러 가는 길", "오늘은 네네 모드", "나 착한 정자야", "지금 나한테 말 걸면 위험해", "눈치 보는 중이라 바빠", "간식 바치러 가야 돼", "오늘은 무조건 네", "나 지금 숨 참는 중", "칭찬 연습 중이야", "공주님 기분 업 작전 중", "방금 혼날 뻔했어"], "egg": ["간식 두고 갈게요…", "기분 괜찮으세요…?", "실례했습니다", "조용히 지나갈게요", "오늘도 예쁘세요 (진심)", "혹시 필요한 거…", "기분 풀리시면 연락 주세요", "달달한 거 대령했습니다", "눈치껏 물러갈게요", "오늘도 아름다우십니다", "제가 잘못했습니다 (일단)", "조공 바치러 왔어요"]}, "calm": {"swim": ["오늘은 연습 경기", "몸 풀기 좋은 날", "훈련 일지 작성 중", "평화 그 자체", "오늘은 구경만", "산책하듯 헤엄", "다음 시즌 준비 중", "체력 비축 중", "스트레칭 하나 둘", "여유롭게 한 바퀴", "오늘은 동네 한 바퀴", "날씨 좋아서 수영 중", "체력장 연습", "오늘 컨디션 무난", "친구들이랑 수다 중", "다음 시즌 작전 회의", "꼬리 근육 운동", "여유 만만", "오늘은 구경꾼", "한량 모드", "산들바람 수영", "오늘은 그냥 놀자", "평화 협정 체결", "헤엄 연습 100바퀴", "오늘 운동 인증", "낮잠 자다 일어남"], "tap": ["오늘은 연습만 해", "심심했는데 반가워", "놀아 줄래?", "오늘 날씨 좋다", "나랑 한 바퀴 돌래?", "헤헤 오늘은 한가해", "심심했는데 잘 왔어", "오늘은 시간 많아", "나랑 경주할래?", "오늘 기분 최고", "하이파이브 한 번 더", "사진 찍어 줘", "오늘은 내가 MC", "같이 산책하자", "나 오늘 좀 귀엽지", "뭐 재밌는 거 없나"], "egg": ["아직 안 오셨네", "다음에 다시 올게요", "여기 자리 맡아 둘게요", "미리 인사드려요", "오늘은 구경만 하고 가요", "오늘도 안녕하세요", "미리 얼굴 도장 찍어요", "다음에 또 올게요", "오늘은 놀러 왔어요", "구경만 해도 되죠?", "이웃사촌 인사드려요"]}, "fertile": {"swim": ["시즌 개막!", "다들 정신 바짝", "경기장 열렸대", "오늘 분위기 다르다", "긴장감 최고조", "피임 확인 필수래", "안전 요원 배치 완료", "오늘은 조심 경보", "다들 흥분 금지", "신호 확인 중!", "전국 정자 체전 개막", "경기장 조명 켜졌다", "관중석 꽉 찼다", "작전 타임!", "주전 선수 입장", "안전 수칙 낭독 중", "헬멧 착용 확인", "다들 들뜨지 마", "오늘은 진지 모드", "심판 휘슬 대기 중", "경쟁률 3억 대 1", "정신 차려 이번 판 중요해", "주인 지갑 사정도 고려해", "계획 없는 출전 금지", "안전이 실력이다", "신호등 확인하고 출발"], "tap": ["지금 중요한 시기야", "안전 수칙 확인했어?", "긴장돼 죽겠어", "오늘은 진지해", "피임은 국룰 알지?", "경기 중엔 터치 금지", "지금 경기 중이야", "작전 방해 금지", "나 오늘 주전이야", "떨려서 꼬리가 안 움직여", "응원은 고마운데 바빠", "안전 장비 점검 중", "진지하게 듣고 있어", "오늘 집중력 MAX"], "egg": ["드디어 오픈?", "난자님 출근하셨다!", "여기가 결승선?", "오늘은 예의 바르게", "줄 서세요 질서 지켜요", "두근두근 심장 터져", "입장 대기 번호 받았어요", "오늘 정말 빛나세요", "예의 바르게 줄 섰습니다", "안전 확인 완료했습니다", "인사부터 드리러 왔어요", "오늘 영업하시나요?"]}, "ovu": {"swim": ["오늘이 결승전", "난자님 등판!", "전원 비상 대기", "역사적인 날", "오늘은 조심 또 조심", "안전벨트 꽉", "긴장해서 꼬리 떨려", "D-day다", "결승전 당일 아침", "역사의 현장", "기자단 대기 중", "오늘은 전설이 된다", "손에 땀이 난다 (손 없음)", "인생 최대의 날", "오늘만 기다렸다", "침착 침착 침착", "다들 안전벨트 확인", "오늘은 진짜 조심", "현장 분위기 최고조", "VIP 등판 확인"], "tap": ["오늘 결승전이야", "집중 방해 금지", "떨리니까 건드리지 마", "오늘 안전이 최우선", "진정해 나 진정해", "오늘 결승이라 예민해", "인터뷰는 경기 끝나고", "지금 명상 중", "꼬리가 떨린다", "행운을 빌어 줘", "오늘은 안전이 우승"], "egg": ["난자님 실물 영접", "오늘 빛이 난다", "인사드립니다!", "오늘은 정말 VIP", "감히 다가가도 되나", "오늘 진짜 여신 같으세요", "감히 인사드립니다", "사인 받을 수 있나요?", "오늘은 멀리서 볼게요", "빛이 너무 강해 눈부셔"]}, "late": {"swim": ["다들 조용히 대기", "분위기 묘하다", "침착하자 다들", "일단 기다려 보자", "심장 쫄깃", "소식 기다리는 중", "다들 숨죽이고 대기", "정적이 흐른다", "뉴스 속보 기다리는 중", "침착하게 기다리기", "공주님 마음 편하게", "조용히 응원하자", "분위기가 묘해", "다들 기도 모드"], "tap": ["침착해", "지금 그럴 때 아니야", "기다려 보자", "괜찮을 거야", "나도 긴장돼", "지금 좀 긴장돼", "조용히 기다리는 중", "같이 기다리자", "걱정하지 마", "침착하게 숨 쉬어"], "egg": ["괜찮으세요?", "조급해하지 마세요", "곧 오실 거예요", "편히 쉬세요", "편하게 기다리세요", "곧 소식 오겠죠", "무리하지 마세요", "따뜻한 차 드세요"]}};
+ const EGGL = {"period": {"talk": ["오늘 휴업합니다", "배 아파…", "핫팩 가져와", "오늘은 아무도 안 받아", "방해 금지 🚫", "이번 달은 패스", "다음 달에 다시 와", "이불 속이 최고", "오늘 영업 끝", "배가 아파서 아무것도 싫어", "핫팩 하나만 더", "눕고 싶다", "누가 미역국 좀", "오늘은 내가 왕", "다들 조용히 해 줘", "초콜릿 리필 바람", "이번 달은 쉬어 갈게", "다 귀찮아 이불 최고", "말 시키지 마 아파", "찜질팩이 내 친구", "생리대 넉넉해?", "오늘은 나 우선", "주인 설거지 했나?", "오늘 하루만 봐 줘"], "reply": ["오늘은 안 돼", "휴업이라니까", "다음 달에 와", "간식만 두고 가", "오늘 휴무라고!", "선물만 받을게", "간식은 환영", "지금 아파서 안 돼", "휴가 중이야", "안아 주는 건 괜찮아", "조용히 가 줘"], "tap": ["아야 살살", "오늘 예민해", "쓰담은 괜찮아", "핫팩 줘", "살살 만져", "배 문질러 줘", "핫팩 어딨어?", "안아 줘", "나 아파…", "헤헤 위로된다", "더 쓰담쓰담"]}, "pms": {"talk": ["건들지 마…", "단 거 먹고 싶다", "기분이 오락가락", "다 귀찮아", "오늘은 예민 주의", "초콜릿 가져와", "오늘따라 다 짜증나", "단 거 없나", "나 부었어? 대답하지 마", "기분이 롤러코스터", "갑자기 눈물 나", "떡볶이 생각나", "아무 말도 하지 마", "다 미워 근데 좋아", "초콜릿 한 판만", "누가 나 좀 안아 줘", "오늘은 내가 맞아", "이유는 묻지 마"], "reply": ["저리 가", "지금 기분 별로야", "간식은 두고 가", "말 걸지 마", "지금 말 걸면 위험해", "간식 들고 왔어?", "저리 가 아니 이리 와", "오늘은 네가 다 잘못", "기분 별로니까 조심해", "칭찬하면 봐 줄게", "사과부터 해"], "tap": ["예민하다니까", "왜 불러", "안아 줘", "달달한 거 줘", "왜 건드려", "안아 주면 용서", "달달한 거 내놔", "나 예민하다고", "쓰담은 허락", "흥", "칭찬해 봐", "헤헤 기분 좀 나아짐"]}, "calm": {"talk": ["아직 준비 중이야", "평화롭다", "오늘은 한가해", "다음에 보자", "여유롭다~", "기다리는 중", "오늘 날씨 좋다", "준비 중이니까 기다려", "평화로운 하루~", "산책 가고 싶다", "오늘은 내가 한가해", "정자들 운동 열심히 하네", "구경하는 재미", "오늘 기분 괜찮아", "다음 달 계획 세우는 중", "오늘은 수다 떨자", "심심하다", "여유 만끽 중"], "reply": ["아직 아니야", "좀 이따 와", "연습 열심히 해", "구경은 자유", "아직 준비 안 됐어", "놀러 온 거면 환영", "오늘은 구경만 해", "조금만 기다려", "친구로 지내자"], "tap": ["헤헤 간지러워", "반가워", "오늘 기분 좋아", "놀자", "반가워!", "간지러워", "같이 놀자", "헤헤", "사진 찍어 줘", "오늘 나 예쁘지?", "심심했는데 고마워"]}, "fertile": {"talk": ["출근 준비 중", "오늘 컨디션 최고", "다들 줄 서", "피임은 확실히!", "안전이 최고", "나 오늘 예쁘지?", "오늘 컨디션 최상", "다들 줄 똑바로 서", "안전 수칙 지켜", "나 오늘 좀 예쁜 듯", "경쟁률 장난 아니다", "피임은 기본 매너", "신중하게 고를 거야", "아무나 안 받아", "오늘은 특별 관리 중", "다들 흥분하지 마", "준비된 자만 와", "질서 지켜 질서"], "reply": ["줄부터 서", "예의 바르게", "안전 확인했어?", "아무나 안 받아", "번호표 받았어?", "예의부터 갖춰", "안전 확인했지?", "신중하게 생각해 봐", "오늘은 깐깐해", "줄 맨 뒤로 가", "면접 보는 중이야"], "tap": ["오늘 바빠", "설레게 왜 그래", "조심해", "두근두근", "조심해서 만져", "나 인기 많아", "오늘 특별하지?", "예쁘다고 해 줘"]}, "ovu": {"talk": ["오늘 내가 주인공", "VIP만 입장", "빛나는 중 ✨", "피임 확인 필수", "오늘은 특별한 날", "다들 조심해", "오늘의 주인공 등장", "나 오늘 빛나 ✨", "VIP 라운지 오픈", "레드카펫 깔아 줘", "오늘 하루만 특별해", "안전 최우선", "다들 신중하게", "사진 찍을 거면 지금", "오늘 나 진짜 예뻐", "무대 조명 켜 줘"], "reply": ["신중하게 생각해", "아무나 안 열어", "안전 먼저", "오늘은 특별해", "오늘은 아무나 못 와", "신중하게 생각했어?", "안전 확인부터", "오늘은 특별해서 깐깐해", "사인은 나중에"], "tap": ["오늘 예쁘지?", "설렌다", "조심 조심", "빛나지?", "눈부시지?", "조심조심", "오늘은 특별 대우해 줘", "헤헤 빛나는 중"]}, "late": {"talk": ["음… 기다리는 중", "곧 올 거야", "다들 침착해", "괜찮아 괜찮아", "곧 오겠지 뭐", "다들 너무 걱정 마", "스트레스 받았나 봐", "따뜻한 차 마시고 싶다", "천천히 기다리자", "오늘은 푹 쉴래"], "reply": ["조용히 기다려", "침착해", "괜찮을 거야", "기다리자", "조용히 기다려 줘", "침착하자", "같이 기다리자", "걱정하지 마"], "tap": ["괜찮아", "나도 기다려", "토닥토닥", "침착하게", "나도 기다리는 중", "안아 줘", "편하게 있자"]}};
+ const spPhase2 = () => { try { const p = M_().phase; return ['period', 'pms', 'fertile', 'ovu', 'late'].includes(p) ? p : 'calm'; } catch (e) { return 'calm'; } };
+ const spPhase = () => { const p = spPhase2(); return p === 'ovu' ? 'fertile' : p; };
+ // 단계별 대사를 섞어서: 기본 대사 + 그 단계 전용 대사
+ const spLine = type => { const p = spPhase2(), x = (SPX[p] || SPX.calm)[type] || [], base = SP[type] || [], ph = type === 'swim' ? (SP[spPhase()] || []) : [];
+  const r = Math.random(); return any(r < 0.4 && x.length ? x : (r < 0.7 && ph.length ? ph : (base.length ? base : x))); };
+ const eggLine = type => any((EGGL[spPhase2()] || EGGL.calm)[type]);
  let spTalkAt = 0, spGoal = null;
  const GO = ["오?", "저쪽인가?", "뭐야 뭐야", "슝~", "방향 전환!", "가즈아", "저기 뭐 있대", "전원 저쪽!", "신호 떴다!", "저기 난자 있대!", "속았다…", "거기 아니잖아", "손가락 따라가!", "주인님 명령이다", "돌격!", "우르르", "다들 따라와", "헛걸음 각", "나 먼저!", "저기다 저기!", "방금 그거 뭐야", "신기루냐", "유혹당했다", "레이더 감지", "목표 재설정", "핸들 꺾어!", "급선회!", "오른쪽 맞아?", "레이스 재개!", "다시 출발", "우왕좌왕", "눈치 보다 출발", "일단 가 보자", "냄새 맡았다", "출동 각!"];
  // 카드의 빈 곳을 누르면 꼬리 캐릭터들이 그곳으로 모여요 (버튼·캐릭터를 누른 건 제외)
  document.addEventListener('pointerdown', e => {
   const hero = document.getElementById('hero');
-  if (editing || !hero || !hero.contains(e.target) || e.target.closest('button,a,input,label,.cat')) return;
+  if (editing || !hero || !hero.contains(e.target) || e.target.closest('button,a,input,label,.cat,.egg')) return;
   const sw = [...ws.values()].filter(w => w.tail && w.mode === 'walk'); if (!sw.length) return;
   const r = pool.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   const now0 = performance.now();
@@ -1021,7 +1047,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
    if (e.target.closest('.ctool')) return;
    e.preventDefault(); e.stopPropagation();
    if (editing) { if (w.tail) return; drag = { w, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; el.setPointerCapture(e.pointerId); return; }
-   w.bub.classList.remove('zz'); w.bub.textContent = w.tail ? any(SP.tap) : any(SAY_LOVE);
+   w.bub.classList.remove('zz'); w.bub.textContent = w.tail ? spLine('tap') : any(SAY_LOVE);
    hearts(w, w.anim === 'love' ? 2 : 4); setAnim(w, 'love', 2600);
    if (navigator.vibrate) try { navigator.vibrate(20); } catch (er) { }
   });
@@ -1137,9 +1163,9 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
     w.x = Math.min(Math.max(0, w.x), mx); w.y = Math.min(Math.max(y0, w.y), my); place(w);
     if (!editing && w.anim !== 'love') {
      // 난자 근처에 오면 (머리 기준 70px 안)
-     if (!egg.hidden && now > (w.eggCd || 0)) { const [hx, hy] = headPos(w), ex = egg.offsetLeft + 52, ey = egg.offsetTop + 52; if (Math.hypot(hx - ex, hy - ey) < 70) { spSay(w, any(SP.egg)); w.eggCd = now + 8000; spTalkAt = now + 1500; } }
+     if (!egg.hidden && now > (w.eggCd || 0)) { const [hx, hy] = headPos(w), ex = egg.offsetLeft + 52, ey = egg.offsetTop + 52; if (Math.hypot(hx - ex, hy - ey) < 70) { spSay(w, spLine('egg')); w.eggCd = now + 8000; spTalkAt = now + 1500; if (now > eggTalkAt) { eggTalkAt = now + 4000; setTimeout(() => eggSay(eggLine('reply')), 1300); } } }
      // 가끔 혼잣말: 절반은 헤엄 대사, 절반은 오늘 주기 단계 대사
-     if (now > spTalkAt && Math.random() < dt * 0.08 * Math.max(1, 4 / Math.max(1, pool.children.length))) { spSay(w, Math.random() < 0.5 ? any(SP.swim) : any(SP[spPhase()])); spTalkAt = now + 2500; }
+     if (now > spTalkAt && Math.random() < dt * 0.08 * Math.max(1, 4 / Math.max(1, pool.children.length))) { spSay(w, spLine('swim')); spTalkAt = now + 2500; }
     }
     continue;
    }
