@@ -514,7 +514,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
- { v: '1.45', d: '11/26', items: ['채팅 입력칸을 키보드 쪽으로 더 붙였어요'] },
+ { v: '1.46', d: '11/26', items: ['접속이 안 되던 문제를 고쳤어요 (1.45 오류)', '채팅 입력칸을 키보드 쪽으로 더 붙였어요'] },
  { v: '1.44', d: '11/26', items: ['채팅에서 키보드를 올리면 생기던 빈칸을 없애고, 위쪽 이름이 가려지던 문제를 고쳤어요', '💬 내 채팅 프로필: 설정 맨 위에서 내 이름과 프로필 사진을 정하면 상대 채팅 화면에 보여요'] },
  { v: '1.43', d: '11/26', items: ['채팅 화면에서는 아래 설정·홈·채팅 탭을 숨겼어요 (채팅 창이 화면 끝까지 넓어져요)', '채팅에서 나갈 때는 왼쪽 위 ‹ 버튼을 누르거나 오른쪽으로 밀어요'] },
  { v: '1.42', d: '11/26', items: ['🔄 자동 업데이트: 앱을 켜거나 다시 볼 때 새 버전이 있으면 알아서 새로고침해요', '이제 업데이트를 올리고 10분씩 기다리지 않아도 돼요'] },
@@ -848,7 +848,7 @@ if (window.visualViewport) {
   // 아이폰은 키보드가 올라오면 화면 전체를 위로 밀어 올려요(offsetTop) → 채팅 창을 보이는 영역에 딱 맞춰요
   const c = $('#chat'), kb = Math.max(0, innerHeight - vv.height), list = $('#chatList'), near = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
   document.body.classList.toggle('kb', kb > 80 && TAB === 'chat');
-  if (kb > 80 && TAB === 'chat') { c.style.setProperty('bottom', 'auto', 'important'); c.style.top = vv.offsetTop + 'px'; c.style.height = (vv.height + 8) + 'px'; // 8px만큼 막대 쪽으로 더 내려서 딱 붙여요 $('#tabbar').style.visibility = 'hidden'; }
+  if (kb > 80 && TAB === 'chat') { c.style.setProperty('bottom', 'auto', 'important'); c.style.top = vv.offsetTop + 'px'; c.style.height = (vv.height + 8) + 'px'; /* 8px만큼 막대 쪽으로 더 내려서 딱 붙여요 */ $('#tabbar').style.visibility = 'hidden'; }
   else { c.style.removeProperty('bottom'); c.style.top = ''; c.style.height = ''; $('#tabbar').style.visibility = ''; }
   if (near) list.scrollTop = list.scrollHeight;
  };
