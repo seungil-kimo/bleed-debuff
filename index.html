@@ -491,7 +491,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   <div class="chatlist" style="display:block"><div id="setbody"></div></div>
 </div>
 <div class="chat" id="repv" aria-hidden="true">
-  <div class="chath"><button class="cback" data-ca="repm" data-d="-1" id="repPrev" aria-label="이전 달">‹</button><b id="repMonth" style="flex:1;text-align:center;font-size:17px">리포트</b><button class="cback" data-ca="repm" data-d="1" id="repNext" aria-label="다음 달" style="margin:0">›</button><button class="rchatb" data-ca="repchat" aria-label="채팅">💬<i class="cb" id="chatBadge" hidden></i></button></div>
+  <div class="chath"><button class="cback" data-ca="repm" data-d="-1" id="repPrev" aria-label="이전 달">‹</button><b id="repMonth" style="flex:1;text-align:center;font-size:17px">리포트</b><button class="cback" data-ca="repm" data-d="1" id="repNext" aria-label="다음 달" style="margin:0">›</button><span style="width:40px;flex:none"></span><i id="chatBadge" hidden></i></div>
   <div class="chatlist" style="display:block"><div id="repbody"></div></div>
 </div>
 <div class="chat" id="chat" aria-hidden="true">
@@ -544,6 +544,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.48', d: '11/26', items: ['💬 채팅 기능을 없앴어요 (버튼, 알림 설정, 채팅 프로필 모두 정리)', '채팅용으로 주고받던 데이터도 더 이상 쓰지 않아서 데이터가 조금 덜 들어요'] },
  { v: '1.47', d: '11/26', items: ['📊 오른쪽 탭을 월간 리포트로 바꿨어요', '이번 달 생리 기간·주기, 평균 주기와 규칙성, 주기 변화 그래프', '자주 있던 증상·기분 순위와 지난달 비교, 생리통 심했던 날, 날짜별 양', '다음 생리·가임기 미리보기, 병원 갈 때 쓰는 요약 복사 버튼', '‹ › 로 지난달 리포트도 볼 수 있어요', '채팅은 리포트 오른쪽 위 💬 버튼으로 옮겼어요 (기존 메시지 그대로)'] },
  { v: '1.46', d: '11/26', items: ['접속이 안 되던 문제를 고쳤어요 (1.45 오류)', '채팅 입력칸을 키보드 쪽으로 더 붙였어요'] },
  { v: '1.44', d: '11/26', items: ['채팅에서 키보드를 올리면 생기던 빈칸을 없애고, 위쪽 이름이 가려지던 문제를 고쳤어요', '💬 내 채팅 프로필: 설정 맨 위에서 내 이름과 프로필 사진을 정하면 상대 채팅 화면에 보여요'] },
@@ -741,7 +742,8 @@ function renderMsg() {
  const ago = Math.max(0, Date.now() - m.at), t = ago < 60e3 ? '방금' : ago < 3600e3 ? Math.floor(ago / 60e3) + '분 전' : Math.floor(ago / 3600e3) + '시간 전';
  el.innerHTML = `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--rose)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>💌 한마디가 도착했어요 <span class="small">· ${esc(t)}</span></b><button class="btn ghost" data-act="msgclose" data-id="${esc(m.id)}" aria-label="닫기" style="flex:none;min-height:36px;width:36px;padding:0;border:0">✕</button></div><p style="margin:6px 0 0;font-size:17px">"${esc(m.text)}"</p></div>`;
 }
-// ── 채팅 (인스타그램 DM처럼) ──
+// ── 채팅 (v1.48부터 꺼 둠: true로 바꾸면 다시 켜져요) ──
+const CHAT_ON = false;
 // 읽음·활동 중·입력 중 상태는 chat/st_{내 uid} 문서에 적어요 (at이 없어서 메시지 목록에는 안 섞여요)
 const chatReadAt = () => { try { return +localStorage.getItem('bd-chat-read') || 0; } catch (e) { return 0; } };
 const chatIsOpen = () => TAB === 'chat';
@@ -758,7 +760,7 @@ function chatMarkRead() {
 }
 // 활동 중: 앱을 보고 있는 동안 1분에 한 번 "지금 보고 있어요"를 적어요
 let actT = 0;
-function heartbeat(force) { if (!S.code || !visible()) return; if (!force && Date.now() - actT < 55e3) return; actT = Date.now(); stPut({ act: actT }); }
+function heartbeat(force) { if (!CHAT_ON || !S.code || !visible()) return; if (!force && Date.now() - actT < 55e3) return; actT = Date.now(); stPut({ act: actT }); }
 setInterval(() => heartbeat(false), 20e3);
 let typT = 0;
 document.addEventListener('visibilitychange', () => {
@@ -1113,7 +1115,7 @@ $('#cact').addEventListener('click', e => { if (e.target.id === 'cact') $('#cact
   if (!on) return; on = false;
   const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
   if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 900) return;
-  if (TAB === 'chat') { if (dx > 0) setTab('rep'); return; }
+  if (TAB === 'chat') { setTab('rep'); return; }
   const order = ['set', 'home', 'rep'], i = order.indexOf(TAB), ni = Math.max(0, Math.min(2, i + (dx < 0 ? 1 : -1)));
   if (ni !== i) setTab(order[ni]);
  }, { passive: true });
@@ -1147,10 +1149,11 @@ document.addEventListener('toggle', e => { const id = e.target && e.target.id; i
 function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
  const myP = profOf(S.uid), myPic = profPic(S.uid);
- let h = `<p class="lbl">💬 내 채팅 프로필 <span class="small">· 상대 채팅 화면에 이 이름과 사진이 보여요</span></p><div style="display:flex;gap:14px;align-items:center;margin-bottom:6px"><label class="cav" style="width:68px;height:68px;font-size:30px;position:relative;cursor:pointer" aria-label="프로필 사진 바꾸기">${myPic ? `<img src="${myPic}" alt="">` : '🙂'}<input type="file" accept="image/*" id="profPhoto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><div style="flex:1"><input id="profName" maxlength="20" placeholder="${esc(role() === 'me' ? '예: 공주님' : '예: 왕자님')}" value="${esc(myP.name || '')}" style="width:100%;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)"><p class="small" style="margin:4px 0 0">사진을 누르면 바꿀 수 있어요 · 이름은 입력하고 키보드를 닫으면 저장돼요</p></div></div>`;
- h += `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
+ let h = '';
+ if (CHAT_ON) h += `<p class="lbl">💬 내 채팅 프로필 <span class="small">· 상대 채팅 화면에 이 이름과 사진이 보여요</span></p><div style="display:flex;gap:14px;align-items:center;margin-bottom:6px"><label class="cav" style="width:68px;height:68px;font-size:30px;position:relative;cursor:pointer" aria-label="프로필 사진 바꾸기">${myPic ? `<img src="${myPic}" alt="">` : '🙂'}<input type="file" accept="image/*" id="profPhoto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><div style="flex:1"><input id="profName" maxlength="20" placeholder="${esc(role() === 'me' ? '예: 공주님' : '예: 왕자님')}" value="${esc(myP.name || '')}" style="width:100%;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)"><p class="small" style="margin:4px 0 0">사진을 누르면 바꿀 수 있어요 · 이름은 입력하고 키보드를 닫으면 저장돼요</p></div></div>`;
+ h += `<p class="lbl"${CHAT_ON ? '' : ' style="margin-top:0"'}>커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
  h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
- h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ['chat', '채팅 메시지'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
+ h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ...(CHAT_ON ? [['chat', '채팅 메시지']] : []), ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
@@ -1314,8 +1317,8 @@ function subscribe() {
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { S.rawPhotos = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.photosLoaded = true; rebuildMedia(); }, () => { }));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.rawChars = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.charsLoaded = true; rebuildMedia(); }, () => { }));
  S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'msgs'), where('at', '>', Date.now() - 3 * 864e5)), sn => { S.msgs = sn.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => typeof m.text === 'string').sort((a, b) => b.at - a.at); renderMsg(); }, () => { }));
- S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'chat'), orderBy('at', 'desc'), limit(200)), { includeMetadataChanges: true }, sn => { S.chat = sn.docs.map(d => ({ id: d.id, ...d.data(), pending: d.metadata.hasPendingWrites })).filter(m => typeof m.at === 'number' && (m.type === 'img' ? !!(m.mid || m.once) : typeof m.text === 'string' && m.text)).reverse(); renderChat(); }, () => { }));
- S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'chat'), where('kind', '==', 'st')), sn => { const o = {}; sn.docs.forEach(d => { o[d.id.slice(3)] = d.data(); }); S.cst = o; const me = o[S.uid]; if (me && me.read > stLast.read) stLast.read = me.read; updateChatMeta(); }, () => { }));
+ if (CHAT_ON) S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'chat'), orderBy('at', 'desc'), limit(200)), { includeMetadataChanges: true }, sn => { S.chat = sn.docs.map(d => ({ id: d.id, ...d.data(), pending: d.metadata.hasPendingWrites })).filter(m => typeof m.at === 'number' && (m.type === 'img' ? !!(m.mid || m.once) : typeof m.text === 'string' && m.text)).reverse(); renderChat(); }, () => { }));
+ if (CHAT_ON) S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'chat'), where('kind', '==', 'st')), sn => { const o = {}; sn.docs.forEach(d => { o[d.id.slice(3)] = d.data(); }); S.cst = o; const me = o[S.uid]; if (me && me.read > stLast.read) stLast.read = me.read; updateChatMeta(); }, () => { }));
  heartbeat(true);
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
