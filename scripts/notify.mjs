@@ -39,11 +39,12 @@ const couples = await db.collection('couples').get();
 for (const c of couples.docs) {
   const data = c.data(), members = data.members || {};
   const since = Date.now() - 2 * 3600e3; // 최근 2시간 안에 저장된 몸 상태 기록만
-  const [ps, devs, logs, msgs] = await Promise.all([
+  const [ps, devs, logs, msgs, chats] = await Promise.all([
     c.ref.collection('periods').get(),
     c.ref.collection('devices').get(),
     c.ref.collection('logs').where('updatedAt', '>', since).get(),
-    c.ref.collection('msgs').where('at', '>', since).get()
+    c.ref.collection('msgs').where('at', '>', since).get(),
+    c.ref.collection('chat').where('at', '>', since).get()
   ]);
   const periods = ps.docs.map(d => ({ start: d.get('start'), end: d.get('end') }));
   const M = model(periods, data.settings || {}, t);
@@ -67,6 +68,15 @@ for (const c of couples.docs) {
         const x = m.data();
         if (typeof x.text !== 'string' || x.by === uid) continue;
         await send(c, dev, `msg-${m.id}`, '💌 한마디가 도착했어요', x.text.slice(0, 120));
+      }
+    }
+
+    // 2-1) 채팅 알림 (즉시 알림이 실패했을 때만 여기서 보내져요)
+    if (notify.chat !== false) {
+      for (const m of chats.docs) {
+        const x = m.data();
+        if (typeof x.text !== 'string' || x.by === uid) continue;
+        await send(c, dev, `chat-${m.id}`, '💬 새 메시지', x.text.slice(0, 140));
       }
     }
 
