@@ -24,7 +24,7 @@
 [hidden]{display:none!important}
 html,body,button,input,textarea,a{touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,-apple-system,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 96px) max(18px,env(safe-area-inset-left))}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) max(18px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 150px) max(18px,env(safe-area-inset-left))}
 h1,h2,.big{font-family:"Gowun Dodum","Noto Sans KR",sans-serif;font-weight:400}
 h1{font-size:32px;line-height:1.05;margin:0}
 h2{font-size:21px;margin:0 0 12px}
@@ -83,7 +83,7 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .pill[aria-pressed=true]{background:var(--rose);border-color:var(--rose);color:#fff}
 .seg{display:flex;gap:6px}.seg .pill{flex:1}
 .lbl{font-size:14px;font-weight:500;margin-top:6px}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;z-index:9;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 74px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .2s;z-index:9;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
 .duo{position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:10px;background:var(--card);border-radius:28px;padding:18px 18px 12px;margin-bottom:14px;overflow:hidden}
 .pp{position:relative;justify-self:center}
@@ -144,7 +144,7 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .cat.edit .ctool{display:flex}
 .cat .ctool button{font-size:12px;min-height:30px;padding:0 8px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
 .cat .ctool button[hidden]{display:none}
-.cbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--lil);border-radius:20px;padding:8px 8px 8px 14px;box-shadow:0 6px 24px rgba(0,0,0,.15);width:max-content;max-width:94vw;font-size:14px}
+.cbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 70px);transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--lil);border-radius:20px;padding:8px 8px 8px 14px;box-shadow:0 6px 24px rgba(0,0,0,.15);width:max-content;max-width:94vw;font-size:14px}
 .cbar[hidden]{display:none}
 .cat .sp{display:none}
 .cat.has-sp{width:68px;height:32px}
@@ -180,10 +180,38 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .egg img{pointer-events:auto;cursor:pointer}
 .ebub{position:absolute;transform:translate(-50%,-100%);background:#fff;color:#c2185b;border:2px solid #ff8fb1;border-radius:16px;padding:6px 14px;font-size:17px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;box-shadow:0 4px 14px rgba(223,65,105,.25)}
 .ebub::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:#ff8fb1;border-bottom:0}
+/* ── 채팅 ── */
+.chatfab{position:fixed;top:calc(env(safe-area-inset-top) + 14px);right:max(14px,env(safe-area-inset-right));z-index:9;width:48px;height:48px;border-radius:50%;border:0;background:var(--rose);color:#fff;font-size:22px;box-shadow:0 4px 14px rgba(223,65,105,.35)}
+.chatfab[hidden]{display:none}
+.chatfab .cb{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#fff;color:var(--rose);font-size:12px;font-weight:800;line-height:20px;border:2px solid var(--rose)}
+.chat{position:fixed;left:0;right:0;z-index:16;background:var(--bg);display:flex;flex-direction:column;transform:translateX(-102%);transition:transform .25s ease;box-shadow:8px 0 30px rgba(0,0,0,.15)}
+.chat.open{transform:none}
+.chath{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;border-bottom:1px solid var(--line)}
+.chath b{font-size:18px}.chath .small{flex:1}
+.chatlist{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
+.cm{max-width:78%;padding:9px 13px;border-radius:18px;font-size:16px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+.cm.me{align-self:flex-end;background:var(--rose);color:#fff;border-bottom-right-radius:6px}
+.cm.you{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px}
+.ct2{font-size:11px;color:var(--mute);margin:-2px 4px 4px}.ct2.me{align-self:flex-end}.ct2.you{align-self:flex-start}
+.cday{align-self:center;font-size:12px;color:var(--mute);background:var(--card);border-radius:99px;padding:3px 12px;margin:8px 0}
+.chatin{display:flex;gap:8px;align-items:flex-end;padding:8px 12px;border-top:1px solid var(--line);background:var(--bg)}
+.chatin textarea{flex:1;min-height:44px;max-height:120px;border-radius:22px;padding:11px 16px;resize:none;font-size:16px}
+.chatin .btn{min-height:44px;border-radius:22px}
+.chatempty{margin:auto;text-align:center;color:var(--mute);font-size:14px}
+/* ── 아래 탭 바 ── */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:18;display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 18px rgba(0,0,0,.05)}
+.tabbar[hidden]{display:none}
+.tabbar button{border:0;background:none;min-height:58px;font-size:12px;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tabbar button span{position:relative;font-size:22px;line-height:1;filter:grayscale(1);opacity:.6}
+.tabbar button.on{color:var(--rose);font-weight:700}.tabbar button.on span{filter:none;opacity:1}
+.tabbar .cb{position:absolute;top:-6px;right:-14px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--rose);color:#fff;font-size:11px;font-weight:800;line-height:18px;font-style:normal;filter:none}
+.chat{bottom:calc(58px + env(safe-area-inset-bottom))!important;top:0;transform:translateX(102%)}
+.chat.setv{transform:translateX(-102%)}
+.chat.open{transform:none!important}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
-@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
+@media (prefers-reduced-motion:reduce){.sheet,.toast,.chat{transition:none}}
 </style>
 </head>
 <body>
@@ -240,7 +268,6 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
     </section>
     <section><div class="phase" id="phase"></div></section>
     <section>
-      <details><summary>설정</summary><div id="setbody"></div></details>
       <p class="small">예측은 지난 기록의 평균으로 계산한 대략적인 날짜예요. 피임이나 임신 계획에 쓰지 말고, 몸이 걱정되면 산부인과에 물어보세요.</p>
     </section>
   </div>
@@ -285,12 +312,26 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label="크기">
   <div class="row2"><button class="btn ghost" id="cropSkip" style="color:#fff;border-color:rgba(255,255,255,.4)">빼기</button><button class="btn" id="cropOk">확인</button></div>
 </div>
+<div class="chat setv" id="setv" aria-hidden="true">
+  <div class="chath"><b>⚙️ 설정</b><span class="small"></span></div>
+  <div class="chatlist" style="display:block"><div id="setbody"></div></div>
+</div>
+<div class="chat" id="chat" aria-hidden="true">
+  <div class="chath"><b>💬 채팅</b><span class="small"></span></div>
+  <div class="chatlist" id="chatList"></div>
+  <form class="chatin" id="chatForm"><textarea id="chatText" rows="1" maxlength="1000" placeholder="메시지 보내기"></textarea><button class="btn" type="submit" style="flex:none">보내기</button></form>
+</div>
+<nav class="tabbar" id="tabbar" hidden>
+  <button data-tab="set" aria-label="설정"><span>⚙️</span>설정</button>
+  <button data-tab="home" aria-label="홈" class="on"><span>🏠</span>홈</button>
+  <button data-tab="chat" aria-label="채팅"><span>💬<i class="cb" id="chatBadge" hidden></i></span>채팅</button>
+</nav>
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFirestore, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, deleteField, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js';
 import { model, events, add, diff, pd, fd, isDate, clampN, OV_FIRST, OV_LAST, FERT_BEFORE, FERT_AFTER } from './cycle.js';
 import { PH, pick } from './content.js';
@@ -322,6 +363,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.38', d: '11/26', items: ['아래 탭 바 추가: ⚙️ 설정 · 🏠 홈 · 💬 채팅', '💬 채팅 추가: 메시지를 보내면 상대 폰에 바로 알림이 가요', '옆으로 밀어서 탭을 넘길 수도 있어요 (왼쪽으로 밀면 채팅, 오른쪽으로 밀면 설정)', '안 읽은 채팅 수가 채팅 탭에 표시돼요'] },
  { v: '1.37', d: '11/26', items: ['난자 말풍선이 정자들 위(맨 위층)에 크게 떠요', '난자가 말하는 동안엔 정자들이 조용히 해요', '정자 혼잣말 빈도를 조금 줄였어요'] },
  { v: '1.36', d: '11/26', items: ['단계별 정자 대사와 난자 대사를 2~3배로 늘렸어요', '생리 중엔 병문안·간식 셔틀, PMS엔 눈치 게임, 가임기엔 정자 체전, 배란일엔 결승전 컨셉으로 더 웃기게'] },
  { v: '1.35', d: '11/26', items: ['난자 사진을 단계별로 넣을 수 있어요: 평소 · 가임기 · 배란일 · 생리 중', '정자 대사가 단계마다 달라져요 (생리 중엔 휴업 모드, 가임기엔 비상 모드 등)', '난자도 말을 해요: 가끔 혼잣말을 하고, 정자가 다가오면 대답하고, 누르면 반응해요'] },
@@ -405,7 +447,7 @@ function renderPush() {
 
 function render() {
  if (!S.couple) return;
- show('app');
+ show('app'); $('#tabbar').hidden = false;
  const M = M_(), P = role() === 'partner', ph = PH[M.phase];
  $('#who').textContent = P ? '함께 보는 사람 화면' : '기록하는 사람 화면';
  renderPush();
@@ -492,6 +534,67 @@ function renderMsg() {
  const ago = Math.max(0, Date.now() - m.at), t = ago < 60e3 ? '방금' : ago < 3600e3 ? Math.floor(ago / 60e3) + '분 전' : Math.floor(ago / 3600e3) + '시간 전';
  el.innerHTML = `<div class="note" style="margin-bottom:14px;display:block;border:1.5px solid var(--rose)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>💌 한마디가 도착했어요 <span class="small">· ${esc(t)}</span></b><button class="btn ghost" data-act="msgclose" data-id="${esc(m.id)}" aria-label="닫기" style="flex:none;min-height:36px;width:36px;padding:0;border:0">✕</button></div><p style="margin:6px 0 0;font-size:17px">"${esc(m.text)}"</p></div>`;
 }
+// ── 채팅 ──
+const chatReadAt = () => { try { return +localStorage.getItem('bd-chat-read') || 0; } catch (e) { return 0; } };
+const chatIsOpen = () => TAB === 'chat';
+function chatMarkRead() { const last = (S.chat || []).length ? S.chat[S.chat.length - 1].at : Date.now(); try { localStorage.setItem('bd-chat-read', String(Math.max(last, chatReadAt()))); } catch (e) { } }
+const hhmm = t => { const d = new Date(t), h = d.getHours(); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}`; };
+function renderChat() {
+ const list = $('#chatList'), ms = S.chat || [];
+ const near = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+ if (!ms.length) list.innerHTML = '<p class="chatempty">아직 메시지가 없어요<br>첫 메시지를 보내 보세요 💌</p>';
+ else {
+  let h = '', lastDay = '';
+  ms.forEach((m, i) => {
+   const day = fd(new Date(m.at)); if (day !== lastDay) { h += `<div class="cday">${esc(kd(day))}</div>`; lastDay = day; }
+   const me = m.by === S.uid, nx = ms[i + 1], endOfRun = !nx || nx.by !== m.by || nx.at - m.at > 60e3;
+   h += `<div class="cm ${me ? 'me' : 'you'}">${esc(m.text)}</div>` + (endOfRun ? `<div class="ct2 ${me ? 'me' : 'you'}">${hhmm(m.at)}</div>` : '');
+  });
+  list.innerHTML = h;
+ }
+ if (chatIsOpen()) { if (near || !renderChat.did) list.scrollTop = list.scrollHeight; renderChat.did = true; chatMarkRead(); }
+ const unread = ms.filter(m => m.by !== S.uid && m.at > chatReadAt()).length, bd = $('#chatBadge');
+ bd.hidden = !unread || chatIsOpen(); bd.textContent = unread > 99 ? '99+' : unread;
+}
+// 아래 탭: 설정(왼쪽) · 홈(가운데) · 채팅(오른쪽)
+let TAB = 'home';
+function setTab(t) {
+ if (!S.code) t = 'home';
+ TAB = t;
+ for (const [id, name] of [['#chat', 'chat'], ['#setv', 'set']]) { const v = $(id); v.classList.toggle('open', t === name); v.setAttribute('aria-hidden', t === name ? 'false' : 'true'); }
+ document.querySelectorAll('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+ if (t !== 'chat') $('#chatText').blur();
+ if (t === 'chat') renderChat.did = false;
+ renderChat();
+}
+function chatOpen() { setTab('chat'); }
+function chatClose() { setTab('home'); }
+document.getElementById('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
+$('#chatForm').addEventListener('submit', async e => {
+ e.preventDefault();
+ const ta = $('#chatText'), text = ta.value.trim(); if (!text || !S.code) return;
+ ta.value = ''; ta.style.height = '';
+ try { const ref = doc(collection(db, 'couples', S.code, 'chat')); await setDoc(ref, { text: text.slice(0, 1000), by: S.uid, at: Date.now() }); pingNotify('chat', ref.id); }
+ catch (err) { console.error(err); ta.value = text; toast(err.code === 'permission-denied' ? '보낼 권한이 없어요. Firebase 규칙에 chat 줄을 추가해 주세요' : '보내지 못했어요. 인터넷 연결을 확인해 주세요'); }
+});
+$('#chatText').addEventListener('input', e => { const t = e.target; t.style.height = ''; t.style.height = Math.min(120, t.scrollHeight) + 'px'; });
+// 화면을 오른쪽으로 밀면 채팅 열기, 채팅에서 왼쪽으로 밀면 닫기
+{
+ let sx = 0, sy = 0, st = 0, on = false;
+ document.addEventListener('touchstart', e => {
+  on = false; if (e.touches.length !== 1 || !S.code) return;
+  const t = e.target;
+  if (t.closest('.cat, .crop, .sheet, textarea, input, .cbar, .tabbar') || !$('#crop').hidden || $('#sh').classList.contains('open') || document.querySelector('.cbar:not([hidden])')) return;
+  sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); on = true;
+ }, { passive: true });
+ document.addEventListener('touchend', e => {
+  if (!on) return; on = false;
+  const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+  if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 900) return;
+  const order = ['set', 'home', 'chat'], i = order.indexOf(TAB), ni = Math.max(0, Math.min(2, i + (dx < 0 ? 1 : -1)));
+  if (ni !== i) setTab(order[ni]);
+ }, { passive: true });
+}
 function renderCal(M) {
  const [y, mo] = S.month.split('-').map(Number), t = T();
  $('#mt').textContent = `${y}년 ${mo}월`;
@@ -522,7 +625,7 @@ function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
  let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
  h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
- h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
+ h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ['chat', '채팅 메시지'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
  if (!P) h += `<p class="lbl">기본 주기 (기록이 2번 이상 쌓이면 평균으로 바뀌어요)</p><label class="row">주기 길이 (일)<input type="number" id="cy" min="21" max="45" value="${clampN(S.couple.settings?.cycle, 21, 45, 28)}"></label><label class="row">생리 기간 (일)<input type="number" id="ln" min="2" max="10" value="${clampN(S.couple.settings?.length, 2, 10, 5)}"></label><button class="btn ghost" data-act="saveset" style="width:100%">기본값 저장</button>`;
  h += `<p class="small">지금까지 생리 기록 ${M.count}번 (전체 기록으로 계산) · 평균 주기 ${M.cycle}일, 기간 ${M.len}일</p>`;
@@ -677,6 +780,7 @@ function subscribe() {
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'photos'), sn => { S.rawPhotos = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.photosLoaded = true; rebuildMedia(); }, () => { }));
  S.unsub.push(onSnapshot(collection(db, 'couples', S.code, 'chars'), sn => { S.rawChars = sn.docs.map(d => ({ id: d.id, ...d.data() })); S.charsLoaded = true; rebuildMedia(); }, () => { }));
  S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'msgs'), where('at', '>', Date.now() - 3 * 864e5)), sn => { S.msgs = sn.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => typeof m.text === 'string').sort((a, b) => b.at - a.at); renderMsg(); }, () => { }));
+ S.unsub.push(onSnapshot(query(collection(db, 'couples', S.code, 'chat'), orderBy('at', 'desc'), limit(200)), sn => { S.chat = sn.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => typeof m.text === 'string' && m.text).reverse(); renderChat(); }, () => { }));
  S.unsub.push(onSnapshot(devRef(), sn => { S.device = sn.exists() ? sn.data() : {}; if (S.got.size >= 3) render(); }, () => {}));
 }
 async function enter(code) {
@@ -685,6 +789,7 @@ async function enter(code) {
  subscribe();
 }
 async function leaveLocal() {
+ setTab('home'); $('#tabbar').hidden = true; S.chat = [];
  S.unsub.forEach(u => u()); S.unsub = []; S.couple = null; S.code = null;
  try { await deleteDoc(doc(db, 'users', S.uid)); } catch (e) { }
  show('setup');
@@ -731,6 +836,8 @@ document.addEventListener('click', async e => {
  if (a === 'chardel') { if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = '정말?'; return; } const r = S.rawChars.find(x => x.id === b.dataset.id); await w(() => deleteDoc(sub('chars', b.dataset.id)), '캐릭터를 뺐어요'); dropMedia(r); return; }
  if (a === 'delphoto') { if (!canPhoto()) return toast('사진은 남자친구만 지울 수 있어요'); const id = b.dataset.id; if (delPhotoArm === id && !(await ensureOwner())) return; if (delPhotoArm !== id) { delPhotoArm = id; toast('한 번 더 누르면 이 사진을 지워요'); return; } delPhotoArm = null; const r = S.rawPhotos.find(x => x.id === id); await w(() => deleteDoc(sub('photos', id)), '사진을 지웠어요'); dropMedia(r); return; }
  if (a === 'msgshuffle') { const pool = (PH[M_().phase] || PH.none).msg.filter(x => x !== S.msgPick); if (pool.length) { S.msgPick = pool[Math.floor(Math.random() * pool.length)]; render(); } return; }
+ if (a === 'chatopen') { chatOpen(); return; }
+ if (a === 'chatclose') { chatClose(); return; }
  if (a === 'sendmsg') {
   const text = S.msgPick; if (!text || !S.code) return;
   b.disabled = true;
