@@ -194,6 +194,8 @@ body.inview{overflow:hidden;overscroll-behavior:none}
 body.inchat .tabbar{display:none!important}
 body.inchat #chat{bottom:0!important}
 body.inchat .chatin{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+body.inchat.kb .chatin{padding-bottom:6px}
+body.kb .chath{padding-top:8px}
 .chath{gap:11px;min-height:58px}
 .cback{border:0;background:none;color:var(--ink);font-size:30px;line-height:1;width:36px;height:44px;margin:0 -6px 0 -8px;padding:0;flex:none;display:flex;align-items:center;justify-content:center}
 .chat::after{content:"";position:absolute;left:0;right:0;top:100%;height:120vh;background:var(--bg)}
@@ -511,6 +513,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.44', d: '11/26', items: ['채팅에서 키보드를 올리면 생기던 빈칸을 없애고, 위쪽 이름이 가려지던 문제를 고쳤어요', '💬 내 채팅 프로필: 설정 맨 위에서 내 이름과 프로필 사진을 정하면 상대 채팅 화면에 보여요'] },
  { v: '1.43', d: '11/26', items: ['채팅 화면에서는 아래 설정·홈·채팅 탭을 숨겼어요 (채팅 창이 화면 끝까지 넓어져요)', '채팅에서 나갈 때는 왼쪽 위 ‹ 버튼을 누르거나 오른쪽으로 밀어요'] },
  { v: '1.42', d: '11/26', items: ['🔄 자동 업데이트: 앱을 켜거나 다시 볼 때 새 버전이 있으면 알아서 새로고침해요', '이제 업데이트를 올리고 10분씩 기다리지 않아도 돼요'] },
  { v: '1.41', d: '11/26', items: ['채팅·설정 화면을 홈과 완전히 분리했어요: 채팅을 열면 홈 화면을 아예 숨겨서 키보드를 올려도 홈이 안 비쳐요', '홈으로 돌아오면 보던 위치 그대로 돌아와요'] },
@@ -732,8 +735,12 @@ const hhmm = t => { const d = new Date(t), h = d.getHours(); return `${h < 12 ? 
 const ago = t => { const d = Math.max(0, Date.now() - t); return d < 60e3 ? '방금' : d < 3600e3 ? Math.floor(d / 60e3) + '분 전' : d < 864e5 ? Math.floor(d / 3600e3) + '시간 전' : Math.floor(d / 864e5) + '일 전'; };
 function timeLabel(t) { const day = fd(new Date(t)), td = T(), yd = fd(new Date(Date.now() - 864e5)); return (day === td ? '' : day === yd ? '어제 ' : kd(day) + ' ') + hhmm(t); }
 function actText(t) { if (!t) return ''; const d = Date.now() - t; return d < 150e3 ? '지금 활동 중' : d < 3600e3 ? Math.floor(d / 60e3) + '분 전 활동' : d < 864e5 ? Math.floor(d / 3600e3) + '시간 전 활동' : ''; }
-const partnerName = () => role() === 'me' ? '남자친구' : '공주님';
+const partnerName = () => (profOf(otherUid()).name || '').trim() || (role() === 'me' ? '남자친구' : '공주님');
+// 채팅 프로필: 각자 설정에서 정한 이름·사진 (커플 문서 profiles.{uid}) → 없으면 예전처럼 사진 칸에서 가져와요
+const profOf = uid => ((S.couple && S.couple.profiles) || {})[uid] || {};
+const profPic = uid => { const m = profOf(uid).mid; return m ? (MEDIA.get(m) || (needMedia(m), '')) : ''; };
 function partnerAvatar() {
+ const pp = profPic(otherUid()); if (pp) return pp;
  const P = (S.photos || {})[role() === 'me' ? 'bf' : 'gf'] || {};
  for (const k of ['default', ...Object.keys(P)]) for (const x of (P[k] || [])) if (x.data && x.data.startsWith('data:image/')) return x.data;
  return '';
@@ -836,13 +843,28 @@ $('#chatText').addEventListener('blur', () => { if (typT) { typT = 0; stPut({ ty
 // 키보드가 올라오면 채팅 창을 키보드 위로 올려요 (아이폰)
 if (window.visualViewport) {
  const vv = visualViewport, fit = () => {
-  const c = $('#chat'), kb = Math.max(0, innerHeight - vv.height - vv.offsetTop), list = $('#chatList'), near = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
+  // 아이폰은 키보드가 올라오면 화면 전체를 위로 밀어 올려요(offsetTop) → 채팅 창을 보이는 영역에 딱 맞춰요
+  const c = $('#chat'), kb = Math.max(0, innerHeight - vv.height), list = $('#chatList'), near = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
+  document.body.classList.toggle('kb', kb > 80 && TAB === 'chat');
   if (kb > 80 && TAB === 'chat') { c.style.setProperty('bottom', 'auto', 'important'); c.style.top = vv.offsetTop + 'px'; c.style.height = vv.height + 'px'; $('#tabbar').style.visibility = 'hidden'; }
   else { c.style.removeProperty('bottom'); c.style.top = ''; c.style.height = ''; $('#tabbar').style.visibility = ''; }
   if (near) list.scrollTop = list.scrollHeight;
  };
  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit);
+ document.addEventListener('focusin', () => { if (TAB === 'chat') for (const t of [50, 200, 400, 700]) setTimeout(fit, t); });
+ document.addEventListener('focusout', () => { for (const t of [50, 300]) setTimeout(fit, t); });
 }
+// 내 채팅 프로필 저장
+document.addEventListener('change', async e => {
+ const t = e.target; if (!S.code) return;
+ if (t.id === 'profName') { const v = t.value.trim().slice(0, 20); if (v === (profOf(S.uid).name || '')) return; await w(() => updateDoc(cRef(), { ['profiles.' + S.uid + '.name']: v }), v ? '이름을 저장했어요' : '이름을 지웠어요'); }
+ if (t.id === 'profPhoto') {
+  const f = t.files[0]; t.value = ''; if (!f) return;
+  const d = await cropImage(f, { out: 240, round: true, title: '프로필 사진 맞추기' }); if (!d) return;
+  try { const old = profOf(S.uid).mid, mid = await putMedia(d); await updateDoc(cRef(), { ['profiles.' + S.uid + '.mid']: mid }); if (old) dropMedia({ mid: old }); toast('프로필 사진을 바꿨어요'); }
+  catch (er) { console.error(er); toast('저장하지 못했어요. 인터넷 연결을 확인해 주세요.'); }
+ }
+});
 // 사진 보내기: 한 번 보기 / 채팅에 남기기
 let pend = null, sendMode = (() => { try { return localStorage.getItem('bd-send-mode') || 'once'; } catch (e) { return 'once'; } })();
 async function chatImg(f) {
@@ -994,7 +1016,9 @@ const openDet = new Set();
 document.addEventListener('toggle', e => { const id = e.target && e.target.id; if (id && id.startsWith('pd-')) { if (e.target.open) openDet.add(id); else openDet.delete(id); } }, true);
 function renderSet(M) {
  const P = role() === 'partner', o = S.device.notify || {}, mem = S.couple.members || {}, other = Object.keys(mem).find(u => u !== S.uid);
- let h = `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
+ const myP = profOf(S.uid), myPic = profPic(S.uid);
+ let h = `<p class="lbl">💬 내 채팅 프로필 <span class="small">· 상대 채팅 화면에 이 이름과 사진이 보여요</span></p><div style="display:flex;gap:14px;align-items:center;margin-bottom:6px"><label class="cav" style="width:68px;height:68px;font-size:30px;position:relative;cursor:pointer" aria-label="프로필 사진 바꾸기">${myPic ? `<img src="${myPic}" alt="">` : '🙂'}<input type="file" accept="image/*" id="profPhoto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"></label><div style="flex:1"><input id="profName" maxlength="20" placeholder="${esc(role() === 'me' ? '예: 공주님' : '예: 왕자님')}" value="${esc(myP.name || '')}" style="width:100%;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)"><p class="small" style="margin:4px 0 0">사진을 누르면 바꿀 수 있어요 · 이름은 입력하고 키보드를 닫으면 저장돼요</p></div></div>`;
+ h += `<p class="lbl">커플 코드</p><div class="code">${esc(fmtCode(S.code))}</div><p class="small">상대가 이 코드로 연결해요. ${other ? '지금 상대와 연결되어 있어요.' : '아직 상대가 연결하지 않았어요.'}</p>`;
  h += `<label class="row">이 폰의 역할<button class="btn ghost" style="flex:none;min-height:44px" data-act="role">${P ? '기록하는 사람으로 바꾸기' : '보는 사람으로 바꾸기'}</button></label>`;
  h += `<p class="lbl">받을 알림 ${S.pushState === 'on' ? '<span class="small">· 알림 켜짐</span>' : ''}</p>` + [['before', '생리 예정일 7·3·2·1일 전, 당일'], ['log', '상대가 몸 상태(증상·기분)를 기록하면'], ['msg', '상대가 보낸 한마디'], ['chat', '채팅 메시지'], ['start', '생리 시작' + (P ? '' : ' (상대에게만 보내요)')], ['late', '예정일 지남'], ['fertile', '가임기 시작'], ['ovu', '배란 예정일']].map(([k, l]) => `<label class="row">${l}<input type="checkbox" data-n="${k}" ${o[k] !== false ? 'checked' : ''}></label>`).join('');
  h += `<p class="small">푸시 알림은 매일 오전 9시쯤 와요. 생리 시작 알림은 기록하고 30분 안쪽으로 와요.</p>`;
