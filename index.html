@@ -491,7 +491,7 @@ ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
   <div class="chatlist" style="display:block"><div id="setbody"></div></div>
 </div>
 <div class="chat" id="repv" aria-hidden="true">
-  <div class="chath"><button class="cback" data-ca="repm" data-d="-1" id="repPrev" aria-label="이전 달">‹</button><b id="repMonth" style="flex:1;text-align:center;font-size:17px">리포트</b><button class="cback" data-ca="repm" data-d="1" id="repNext" aria-label="다음 달" style="margin:0">›</button><span style="width:40px;flex:none"></span><i id="chatBadge" hidden></i></div>
+  <div class="chath"><button class="cback" data-ca="repm" data-step="-1" id="repPrev" aria-label="이전 달" style="margin:0;width:44px">‹</button><b id="repMonth" style="flex:1;text-align:center;font-size:17px">리포트</b><button class="cback" data-ca="repm" data-step="1" id="repNext" aria-label="다음 달" style="margin:0;width:44px">›</button><i id="chatBadge" hidden></i></div>
   <div class="chatlist" style="display:block"><div id="repbody"></div></div>
 </div>
 <div class="chat" id="chat" aria-hidden="true">
@@ -544,6 +544,8 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.50', d: '11/26', items: ['리포트의 ‹ › 달 바꾸기 버튼을 양쪽 대칭으로 맞췄어요'] },
+ { v: '1.49', d: '11/26', items: ['리포트에서 달을 바꾼 뒤 홈으로 가면 기록 창이 뜨던 버그를 고쳤어요'] },
  { v: '1.48', d: '11/26', items: ['💬 채팅 기능을 없앴어요 (버튼, 알림 설정, 채팅 프로필 모두 정리)', '채팅용으로 주고받던 데이터도 더 이상 쓰지 않아서 데이터가 조금 덜 들어요'] },
  { v: '1.47', d: '11/26', items: ['📊 오른쪽 탭을 월간 리포트로 바꿨어요', '이번 달 생리 기간·주기, 평균 주기와 규칙성, 주기 변화 그래프', '자주 있던 증상·기분 순위와 지난달 비교, 생리통 심했던 날, 날짜별 양', '다음 생리·가임기 미리보기, 병원 갈 때 쓰는 요약 복사 버튼', '‹ › 로 지난달 리포트도 볼 수 있어요', '채팅은 리포트 오른쪽 위 💬 버튼으로 옮겼어요 (기존 메시지 그대로)'] },
  { v: '1.46', d: '11/26', items: ['접속이 안 되던 문제를 고쳤어요 (1.45 오류)', '채팅 입력칸을 키보드 쪽으로 더 붙였어요'] },
@@ -921,7 +923,7 @@ function renderRep() {
 document.addEventListener('click', async e => {
  const b = e.target.closest('[data-ca]'); if (!b) return;
  const a = b.dataset.ca;
- if (a === 'repm') { S.repMonth = ymAdd(S.repMonth || T().slice(0, 7), +b.dataset.d); renderRep(); $('#repv .chatlist').scrollTop = 0; }
+ if (a === 'repm') { S.repMonth = ymAdd(S.repMonth || T().slice(0, 7), +b.dataset.step); renderRep(); $('#repv .chatlist').scrollTop = 0; }
  else if (a === 'repchat') setTab('chat');
  else if (a === 'repcopy') {
   const ym = S.repMonth || T().slice(0, 7), txt = repText(ym, repData(ym));
