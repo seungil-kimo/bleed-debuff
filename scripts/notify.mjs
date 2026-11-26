@@ -76,7 +76,7 @@ for (const c of couples.docs) {
       for (const m of chats.docs) {
         const x = m.data();
         if (typeof x.text !== 'string' || x.by === uid) continue;
-        await send(c, dev, `chat-${m.id}`, '💬 새 메시지', x.text.slice(0, 140));
+        await send(c, dev, `chat-${m.id}`, '💬 새 메시지', x.type === 'img' ? (x.once ? '📸 한 번만 볼 수 있는 사진을 보냈어요' : '📷 사진을 보냈어요') : x.text.slice(0, 140));
       }
     }
 
