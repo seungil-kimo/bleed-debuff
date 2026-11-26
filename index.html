@@ -190,6 +190,8 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .chath b{font-size:18px}.chath .small{flex:1}
 .chatlist{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
 .chath{gap:11px;min-height:58px}
+.cback{border:0;background:none;color:var(--ink);font-size:30px;line-height:1;width:36px;height:44px;margin:0 -6px 0 -8px;padding:0;flex:none;display:flex;align-items:center;justify-content:center}
+.chat::after{content:"";position:absolute;left:0;right:0;top:100%;height:120vh;background:var(--bg)}
 .cav{width:36px;height:36px;border-radius:50%;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;background:linear-gradient(135deg,#ffd3e0,#e3d4ff)}
 .cav img{width:100%;height:100%;object-fit:cover;display:block}
 .cav.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px #2bb673}
@@ -504,6 +506,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.40', d: '11/26', items: ['채팅에서 키보드를 올리면 아래로 홈 화면이 살짝 보이던 문제를 고쳤어요', '채팅 왼쪽 위에 ‹ 뒤로가기 버튼을 넣었어요 (누르면 홈으로)'] },
  { v: '1.39', d: '11/26', items: ['💬 채팅을 인스타그램 DM처럼 바꿨어요: 말풍선 묶음, 상대 프로필 사진, 이모지만 보내면 크게', '👀 읽음 표시: 상대가 읽으면 내 마지막 메시지 아래에 "읽음 · 방금"이 실시간으로 떠요', '🟢 지금 활동 중 / ✍️ 입력 중… 표시', '📸 한 번만 볼 수 있는 사진: 상대가 한 번 열면 사라져요 (서버에서도 지워져요)', '🖼️ 채팅에 남기는 사진도 보낼 수 있어요', '❤️ 메시지를 두 번 탭하면 좋아요, 길게 누르면 복사·보내기 취소', '❤️ 입력칸이 비어 있을 때 하트 버튼으로 바로 하트 보내기', '🐟 시작 화면: 예상 접속 시간을 계산해서 그동안 정자가 난자까지 헤엄쳐 가요'] },
  { v: '1.38', d: '11/26', items: ['아래 탭 바 추가: ⚙️ 설정 · 🏠 홈 · 💬 채팅', '💬 채팅 추가: 메시지를 보내면 상대 폰에 바로 알림이 가요', '옆으로 밀어서 탭을 넘길 수도 있어요 (왼쪽으로 밀면 채팅, 오른쪽으로 밀면 설정)', '안 읽은 채팅 수가 채팅 탭에 표시돼요'] },
  { v: '1.37', d: '11/26', items: ['난자 말풍선이 정자들 위(맨 위층)에 크게 떠요', '난자가 말하는 동안엔 정자들이 조용히 해요', '정자 혼잣말 빈도를 조금 줄였어요'] },
@@ -755,7 +758,7 @@ function renderChat() {
 let headHTML = '';
 function updateChatMeta(fromRender) {
  const o = otherSt(), typing = o.typ && Date.now() - o.typ < 6000, st = typing ? '입력 중…' : actText(o.act), on = !typing && st === '지금 활동 중';
- const hh = `<div class="cav${on ? ' on' : ''}">${avHTML()}</div><div class="cn"><b>${esc(partnerName())}</b><small class="${on || typing ? 'on' : ''}">${esc(st)}</small></div>`;
+ const hh = `<button class="cback" data-ca="back" aria-label="홈으로">‹</button><div class="cav${on ? ' on' : ''}">${avHTML()}</div><div class="cn"><b>${esc(partnerName())}</b><small class="${on || typing ? 'on' : ''}">${esc(st)}</small></div>`;
  if (hh !== headHTML) { $('#chatHead').innerHTML = hh; headHTML = hh; }
  const ms = S.chat || [], lm = ms[ms.length - 1], se = $('#cseen'), ty = $('#ctyp');
  if (se) se.textContent = !lm || lm.by !== S.uid ? '' : lm.pending ? '보내는 중…' : (o.read || 0) >= lm.at ? '읽음' + (o.readAt ? ' · ' + ago(o.readAt) : '') : '전송됨';
@@ -804,8 +807,8 @@ $('#chatText').addEventListener('blur', () => { if (typT) { typT = 0; stPut({ ty
 if (window.visualViewport) {
  const vv = visualViewport, fit = () => {
   const c = $('#chat'), kb = Math.max(0, innerHeight - vv.height - vv.offsetTop), list = $('#chatList'), near = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
-  if (kb > 80 && TAB === 'chat') { c.style.setProperty('bottom', kb + 'px', 'important'); c.style.top = vv.offsetTop + 'px'; $('#tabbar').style.visibility = 'hidden'; }
-  else { c.style.removeProperty('bottom'); c.style.top = ''; $('#tabbar').style.visibility = ''; }
+  if (kb > 80 && TAB === 'chat') { c.style.setProperty('bottom', 'auto', 'important'); c.style.top = vv.offsetTop + 'px'; c.style.height = vv.height + 'px'; $('#tabbar').style.visibility = 'hidden'; }
+  else { c.style.removeProperty('bottom'); c.style.top = ''; c.style.height = ''; $('#tabbar').style.visibility = ''; }
   if (near) list.scrollTop = list.scrollHeight;
  };
  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit);
@@ -902,7 +905,8 @@ function actMenu(id) {
 document.addEventListener('click', async e => {
  const b = e.target.closest('[data-ca]'); if (!b || b.closest('#chatList')) return;
  const a = b.dataset.ca, id = b.dataset.id;
- if (a === 'vclose') closeViewer();
+ if (a === 'back') setTab('home');
+ else if (a === 'vclose') closeViewer();
  else if (a === 'sclose') { pend = null; $('#csheet').hidden = true; }
  else if (a === 'mode') { sendMode = b.dataset.m; try { localStorage.setItem('bd-send-mode', sendMode); } catch (er) { } sheetUI(); }
  else if (a === 'ssend') sendPhoto();
