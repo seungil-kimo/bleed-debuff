@@ -178,7 +178,8 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .ripple{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--rose);pointer-events:none;animation:ripple .7s ease-out forwards}
 @keyframes ripple{from{transform:scale(.4);opacity:.9}to{transform:scale(4);opacity:0}}
 .egg img{pointer-events:auto;cursor:pointer}
-.egg .ebub{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);background:#fff;color:#c2185b;border:1.5px solid #ffb3c8;border-radius:12px;padding:2px 10px;font-size:13px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:2}
+.ebub{position:absolute;transform:translate(-50%,-100%);background:#fff;color:#c2185b;border:2px solid #ff8fb1;border-radius:16px;padding:6px 14px;font-size:17px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;box-shadow:0 4px 14px rgba(223,65,105,.25)}
+.ebub::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:#ff8fb1;border-bottom:0}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 .load{padding:80px 0;text-align:center;color:var(--mute)}
 ol.howto{padding-left:22px;margin:0}ol.howto li{margin:8px 0}
@@ -321,6 +322,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.37', d: '11/26', items: ['난자 말풍선이 정자들 위(맨 위층)에 크게 떠요', '난자가 말하는 동안엔 정자들이 조용히 해요', '정자 혼잣말 빈도를 조금 줄였어요'] },
  { v: '1.36', d: '11/26', items: ['단계별 정자 대사와 난자 대사를 2~3배로 늘렸어요', '생리 중엔 병문안·간식 셔틀, PMS엔 눈치 게임, 가임기엔 정자 체전, 배란일엔 결승전 컨셉으로 더 웃기게'] },
  { v: '1.35', d: '11/26', items: ['난자 사진을 단계별로 넣을 수 있어요: 평소 · 가임기 · 배란일 · 생리 중', '정자 대사가 단계마다 달라져요 (생리 중엔 휴업 모드, 가임기엔 비상 모드 등)', '난자도 말을 해요: 가끔 혼잣말을 하고, 정자가 다가오면 대답하고, 누르면 반응해요'] },
  { v: '1.34', d: '11/26', items: ['즉시 알림: 💌 한마디, 생리 시작, 몸 상태 기록 알림이 30분 기다리지 않고 몇 초 안에 가요', '즉시 알림이 실패하면 지금처럼 GitHub가 대신 보내요 (두 번 가지 않아요)'] },
@@ -976,13 +978,22 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
  new ResizeObserver(syncTop).observe(app); syncTop();
  // 꼬리 캐릭터는 "다음 생리까지" 카드 안에서만 헤엄쳐요
  const pool = document.createElement('div'); pool.id = 'swimPool'; pool.style.cssText = 'position:absolute;z-index:3;pointer-events:none'; app.appendChild(pool);
- const egg = document.createElement('div'); egg.className = 'egg'; egg.hidden = true; egg.innerHTML = '<img alt=""><span class="ebub"></span>'; pool.appendChild(egg);
+ const egg = document.createElement('div'); egg.className = 'egg'; egg.hidden = true; egg.innerHTML = '<img alt="">'; pool.appendChild(egg);
+ // 난자 말풍선은 정자들보다 위층에 따로 띄워요
+ const ebub = document.createElement('div'); ebub.className = 'ebub'; pool.appendChild(ebub);
+ const placeEbub = () => { if (egg.hidden) { ebub.style.opacity = ''; return; } ebub.style.left = (egg.offsetLeft + 52) + 'px'; ebub.style.top = (egg.offsetTop - 18) + 'px'; };
  let eggTalkAt = performance.now() + 4000, eggT = 0;
- function eggSay(text, ms = 2600) { if (egg.hidden || !text) return; const b = egg.querySelector('.ebub'); b.textContent = text; b.style.opacity = '1'; clearTimeout(eggT); eggT = setTimeout(() => { b.style.opacity = ''; }, ms); }
+ function eggSay(text, ms = 3200) {
+  if (egg.hidden || !text) return; ebub.textContent = text; placeEbub(); ebub.style.opacity = '1';
+  spTalkAt = Math.max(spTalkAt, performance.now() + ms + 600); // 난자가 말하는 동안 정자들은 조용히
+  for (const w of ws.values()) if (w.tail) { clearTimeout(w.sayT); w.bub.style.opacity = ''; }
+  clearTimeout(eggT); eggT = setTimeout(() => { ebub.style.opacity = ''; }, ms);
+ }
  egg.querySelector('img').addEventListener('pointerdown', e => { e.stopPropagation(); eggSay(eggLine('tap')); eggTalkAt = performance.now() + 5000; });
  setInterval(() => { const now = performance.now(); if (!egg.hidden && now > eggTalkAt && document.visibilityState === 'visible') { eggSay(eggLine('talk')); eggTalkAt = now + 7000 + Math.random() * 8000; } }, 1000);
  const syncPool = () => {
   const h = document.getElementById('hero'); if (!h) return; pool.style.left = h.offsetLeft + 'px'; pool.style.top = h.offsetTop + 'px'; pool.style.width = h.offsetWidth + 'px'; pool.style.height = h.offsetHeight + 'px';
+  placeEbub();
   if (!egg.hidden) { const r = h.querySelector('.ring'); if (r) { const hr = h.getBoundingClientRect(), rr = r.getBoundingClientRect(); egg.style.left = (rr.left - hr.left + rr.width / 2 - 52) + 'px'; egg.style.top = (rr.top - hr.top + rr.height / 2 - 52) + 'px'; } }
  };
  window.eggSync = () => { const im = egg.querySelector('img'); if (S.egg) { if (im.getAttribute('src') !== S.egg) im.src = S.egg; egg.hidden = false; } else { egg.hidden = true; im.removeAttribute('src'); } syncPool(); };
@@ -1165,7 +1176,7 @@ isSupported().then(ok => { if (ok) onMessage(getMessaging(app), p => toast((p.no
      // 난자 근처에 오면 (머리 기준 70px 안)
      if (!egg.hidden && now > (w.eggCd || 0)) { const [hx, hy] = headPos(w), ex = egg.offsetLeft + 52, ey = egg.offsetTop + 52; if (Math.hypot(hx - ex, hy - ey) < 70) { spSay(w, spLine('egg')); w.eggCd = now + 8000; spTalkAt = now + 1500; if (now > eggTalkAt) { eggTalkAt = now + 4000; setTimeout(() => eggSay(eggLine('reply')), 1300); } } }
      // 가끔 혼잣말: 절반은 헤엄 대사, 절반은 오늘 주기 단계 대사
-     if (now > spTalkAt && Math.random() < dt * 0.08 * Math.max(1, 4 / Math.max(1, pool.children.length))) { spSay(w, spLine('swim')); spTalkAt = now + 2500; }
+     if (now > spTalkAt && Math.random() < dt * 0.05 * Math.max(1, 4 / Math.max(1, pool.children.length))) { spSay(w, spLine('swim')); spTalkAt = now + 2500; }
     }
     continue;
    }
