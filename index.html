@@ -508,6 +508,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.42', d: '11/26', items: ['🔄 자동 업데이트: 앱을 켜거나 다시 볼 때 새 버전이 있으면 알아서 새로고침해요', '이제 업데이트를 올리고 10분씩 기다리지 않아도 돼요'] },
  { v: '1.41', d: '11/26', items: ['채팅·설정 화면을 홈과 완전히 분리했어요: 채팅을 열면 홈 화면을 아예 숨겨서 키보드를 올려도 홈이 안 비쳐요', '홈으로 돌아오면 보던 위치 그대로 돌아와요'] },
  { v: '1.40', d: '11/26', items: ['채팅에서 키보드를 올리면 아래로 홈 화면이 살짝 보이던 문제를 고쳤어요', '채팅 왼쪽 위에 ‹ 뒤로가기 버튼을 넣었어요 (누르면 홈으로)'] },
  { v: '1.39', d: '11/26', items: ['💬 채팅을 인스타그램 DM처럼 바꿨어요: 말풍선 묶음, 상대 프로필 사진, 이모지만 보내면 크게', '👀 읽음 표시: 상대가 읽으면 내 마지막 메시지 아래에 "읽음 · 방금"이 실시간으로 떠요', '🟢 지금 활동 중 / ✍️ 입력 중… 표시', '📸 한 번만 볼 수 있는 사진: 상대가 한 번 열면 사라져요 (서버에서도 지워져요)', '🖼️ 채팅에 남기는 사진도 보낼 수 있어요', '❤️ 메시지를 두 번 탭하면 좋아요, 길게 누르면 복사·보내기 취소', '❤️ 입력칸이 비어 있을 때 하트 버튼으로 바로 하트 보내기', '🐟 시작 화면: 예상 접속 시간을 계산해서 그동안 정자가 난자까지 헤엄쳐 가요'] },
@@ -553,6 +554,23 @@ const NOTES = [
  { v: '1.0', d: '11/24', items: ['출혈디버프 첫 버전'] }
 ];
 const APP_VER = NOTES[0].v;
+// ── 자동 업데이트: version.json(아주 작은 파일)만 확인해서 새 버전이면 새로고침 ──
+const verNum = v => String(v || '0').split('.').map(Number).reduce((a, x) => a * 1000 + (x || 0), 0);
+let updAt = 0;
+async function checkUpdate() {
+ if (Date.now() - updAt < 60e3) return; updAt = Date.now();
+ try {
+  const r = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
+  const v = String((await r.json()).v || '');
+  if (verNum(v) <= verNum(APP_VER)) return;
+  let tried = ''; try { tried = sessionStorage.getItem('bd-upd') || ''; } catch (e) { }
+  if (tried === v) return; // 이미 한 번 시도했으면 반복하지 않아요
+  try { sessionStorage.setItem('bd-upd', v); } catch (e) { }
+  location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash);
+ } catch (e) { }
+}
+setTimeout(checkUpdate, 1500);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
 const seenVer = () => { try { return localStorage.getItem('bd-seen-ver'); } catch (e) { return null; } };
 
 const S = { eggs: {}, rawPhotos: [], rawChars: [], photosLoaded: false, egg: '', mascots: {}, chars: [], charsLoaded: false, photos: { gf: {}, bf: {} }, uid: null, code: null, couple: null, periods: [], logs: {}, device: {}, month: T().slice(0, 7), unsub: [], joinRole: 'partner', pushState: 'unknown', got: new Set() };
