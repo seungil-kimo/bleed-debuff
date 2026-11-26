@@ -191,6 +191,9 @@ textarea{width:100%;min-height:80px;font:inherit;font-size:16px;padding:10px 12p
 .chatlist{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
 body.inview .wrap,body.inview #cat{display:none!important}
 body.inview{overflow:hidden;overscroll-behavior:none}
+body.inchat .tabbar{display:none!important}
+body.inchat #chat{bottom:0!important}
+body.inchat .chatin{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
 .chath{gap:11px;min-height:58px}
 .cback{border:0;background:none;color:var(--ink);font-size:30px;line-height:1;width:36px;height:44px;margin:0 -6px 0 -8px;padding:0;flex:none;display:flex;align-items:center;justify-content:center}
 .chat::after{content:"";position:absolute;left:0;right:0;top:100%;height:120vh;background:var(--bg)}
@@ -508,6 +511,7 @@ const fmtCode = c => c.slice(0, 4) + '-' + c.slice(4);
 
 // ── 제작자 노트: 수정할 때마다 맨 위에 새 버전을 추가해요 ──
 const NOTES = [
+ { v: '1.43', d: '11/26', items: ['채팅 화면에서는 아래 설정·홈·채팅 탭을 숨겼어요 (채팅 창이 화면 끝까지 넓어져요)', '채팅에서 나갈 때는 왼쪽 위 ‹ 버튼을 누르거나 오른쪽으로 밀어요'] },
  { v: '1.42', d: '11/26', items: ['🔄 자동 업데이트: 앱을 켜거나 다시 볼 때 새 버전이 있으면 알아서 새로고침해요', '이제 업데이트를 올리고 10분씩 기다리지 않아도 돼요'] },
  { v: '1.41', d: '11/26', items: ['채팅·설정 화면을 홈과 완전히 분리했어요: 채팅을 열면 홈 화면을 아예 숨겨서 키보드를 올려도 홈이 안 비쳐요', '홈으로 돌아오면 보던 위치 그대로 돌아와요'] },
  { v: '1.40', d: '11/26', items: ['채팅에서 키보드를 올리면 아래로 홈 화면이 살짝 보이던 문제를 고쳤어요', '채팅 왼쪽 위에 ‹ 뒤로가기 버튼을 넣었어요 (누르면 홈으로)'] },
@@ -794,6 +798,7 @@ let TAB = 'home';
 function setTab(t) {
  if (!S.code) t = 'home';
  const was = TAB; TAB = t;
+ document.body.classList.toggle('inchat', t === 'chat'); // 채팅에서는 아래 탭을 숨겨요 (‹ 버튼이나 옆으로 밀어서 나가요)
  // 채팅·설정 화면은 홈과 완전히 따로: 넘어가는 애니메이션이 끝나면 홈 화면을 아예 숨겨요
  clearTimeout(setTab.tm);
  if (t === 'home') { if (document.body.classList.contains('inview')) { document.body.classList.remove('inview'); scrollTo(0, setTab.y || 0); } }
